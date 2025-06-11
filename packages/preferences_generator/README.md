@@ -1,15 +1,26 @@
 # preferences_generator
 
-A powerful, type-safe code generator for creating preference and settings classes in Dart & Flutter.
+[![pub version][pub_badge]][pub_link]
+[![style: lint][lint_badge]][lint_link]
+[![License: MIT][license_badge]][license_link]
 
-This package is the core build-time tool of the **[Preferences Workspace](https://github.com/your-repo/preferences_workspace)**. It processes classes annotated with `@PreferenceModule` and generates fully implemented, boilerplate-free preference management code.
+A powerful, type-safe code generation solution for creating preference and settings classes in
+Dart & Flutter.
+
+This package provides a clean, annotation-based API to eliminate boilerplate code for managing user
+settings, allowing you to interact with `shared_preferences`, `flutter_secure_storage`, or any other
+key-value store in a fully type-safe manner.
 
 ## Features
 
-- ✅ **Type-Safe:** No more magic strings. Get compile-time safety for all your preference keys and types.
-- 🧱 **Storage Agnostic:** Use `shared_preferences`, `flutter_secure_storage`, or any other key-value store by implementing a simple `PreferenceAdapter`.
-- ⚙️ **Boilerplate Reduction:** Define your preferences once in an abstract class and let the generator do the rest.
-- 🎨 **Rich Type Support:** Out-of-the-box support for `int`, `String`, `double`, `bool`, `DateTime`, `Color`, `List`, `Map`, `Enum`, and `Record`.
+- ✅ **Type-Safe:** No more magic strings. Get compile-time safety for all your preference keys and
+  types.
+- 🧱 **Storage Agnostic:** Use `shared_preferences`, `flutter_secure_storage`, or a custom backend by
+  implementing a simple `PreferenceAdapter`.
+- ⚙️ **Boilerplate Reduction:** Define your preferences once in an abstract class and let the
+  generator do the rest.
+- 🎨 **Rich Type Support:** Out-of-the-box support for `int`, `String`, `double`, `bool`, `DateTime`,
+  `Color`, `List`, `Map`, `Enum`, and `Record`.
 - 🚀 **Developer Friendly:** Fails at build-time with clear, helpful errors for misconfigurations.
 
 ## Getting Started
@@ -18,57 +29,59 @@ Follow these steps to integrate the Preferences Suite into your project.
 
 ### 1. Installation
 
-Add `preferences_annotation` as a regular dependency, and this package (`preferences_generator`) along with `build_runner` as dev dependencies.
+Add the necessary dependencies to your `pubspec.yaml` file. You will need the
+`preferences_annotation` package as a regular dependency, and this package (`preferences_generator`)
+along with `build_runner` as dev dependencies.
 
 ```yaml
-# In your app's pubspec.yaml
 dependencies:
-  preferences_annotation: ^0.1.0
+  preferences_annotation: ^1.0.0
 
 dev_dependencies:
-  preferences_generator: ^0.1.0
-  build_runner: ^2.4.11
+  preferences_generator: ^1.0.0
+  build_runner: ^2.4.15
 ```
 
 ### 2. Create Your Preference Module
 
-Create an abstract class annotated with `@PreferenceModule`. This file will be the single source of truth for a related group of preferences.
+Create an abstract class annotated with `@PreferenceModule`. This class must mix in the generated
+`_$YourClassName` interface to inherit the generated method signatures.
 
 **`lib/settings.dart`**
+
 ```dart
 import 'package:flutter/material.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
-import 'my_preference_adapter.dart'; // Your implementation of PreferenceAdapter
+import 'my_preference_adapter.dart'; // We will create this in the next step
 
 part 'settings.g.dart';
 
 @PreferenceModule()
-abstract class AppSettings {
-  factory AppSettings(
-    PreferenceAdapter adapter, {
-    // A non-nullable enum with a required default value.
-    @PreferenceEntry(defaultValue: ThemeMode.system)
+abstract class AppSettings with _$AppSettings {
+  factory AppSettings(PreferenceAdapter adapter, {
+    @PreferenceEntry(defaultValue: ThemeMode.system) 
     final ThemeMode themeMode,
 
-    // A nullable Color. No default value is needed.
-    @PreferenceEntry()
+    @PreferenceEntry() 
     final Color? accentColor,
-
-    // A non-nullable record with a default value.
-    @PreferenceEntry(defaultValue: (x: 0, y: 0))
-    final ({int x, int y}) windowPosition,
-    
   }) = _AppSettings;
+  
+  static Future<AppSettings> create(PreferenceAdapter adapter) async {
+    final instance = _AppSettings(adapter);
+    await instance._load();
+    return instance;
+  }
 }
 ```
 
 ### 3. Implement a Preference Adapter
 
-This library is backend-agnostic. You must provide an implementation of the `PreferenceAdapter` interface from `preferences_annotation` that connects to your desired storage solution.
-
-Here is a minimal example for `shared_preferences`:
+This library is backend-agnostic. You must provide an implementation of the `PreferenceAdapter`
+interface that connects to your desired storage solution. Here is a starter example for
+`shared_preferences`:
 
 **`lib/my_preference_adapter.dart`**
+
 ```dart
 import 'dart:convert';
 import 'dart:ui';
@@ -77,26 +90,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class MyPreferenceAdapter implements PreferenceAdapter {
   final SharedPreferences _prefs;
-  MyPreferenceAdapter(this._prefs);
 
-  static Future<MyPreferenceAdapter> getInstance() async {
-    return MyPreferenceAdapter(await SharedPreferences.getInstance());
-  }
-
+  const MyPreferenceAdapter(this._prefs);
+  
   @override
-  Future<T?> get<T>(String key) async {
-    // ... implementation ...
-  }
-
-  @override
-  Future<void> set<T>(String key, T value) async {
-    // ... implementation ...
+  Future<void> clear() async {
+    await _prefs.clear();
   }
   
-  // ... other methods
+  @override
+  Future<T> get<T>(String key) async {
+    // ... (implementation of get)
+  }
+
+  // ... (full implementation of set, remove, etc.)
 }
 ```
-*A complete, robust implementation can be found in the [example application](https://github.com/your-repo/preferences_workspace/blob/main/packages/app_example/lib/data/adapters/shared_preferences_adapter.dart) in our GitHub repository.*
+
+*(A complete implementation can be found in the example package of the project repository.)*
 
 ### 4. Run the Code Generator
 
@@ -112,11 +123,69 @@ Instantiate and use your type-safe `AppSettings` class.
 
 ```dart
 // Initialization
-final adapter = await MyPreferenceAdapter.getInstance();
+final adapter = MyPreferenceAdapter();
+
 final appSettings = AppSettings(adapter);
 
 // Usage
 await appSettings.setThemeMode(ThemeMode.dark);
 final currentTheme = appSettings.themeMode; // Access value synchronously
-print('Current theme is $currentTheme');
 ```
+
+---
+
+## Advanced Usage
+
+### Building a Reactive UI with `ChangeNotifier`
+
+For building UIs that react automatically to preference changes, you can mix in Flutter's
+`ChangeNotifier`. The generator will detect this and automatically call `notifyListeners()` after a
+preference is updated.
+
+1. **Add the `ChangeNotifier` Mixin:**
+   ```dart
+   import 'package:flutter/foundation.dart'; // Required for ChangeNotifier
+   
+   // ... other imports
+
+   @PreferenceModule()
+   abstract class AppSettings with _$AppSettings, ChangeNotifier { // Add ChangeNotifier
+      // ... same factory constructor as before
+   }
+   ```
+
+2. **Listen to Changes in Your UI:**
+   You can now use a `ListenableBuilder` (or other state management solutions that work with
+   `Listenable`) to rebuild only the widgets that depend on a specific preference. This is highly
+   efficient.
+
+   ```dart
+   // In your UI widget
+   
+   // Get your settings instance (e.g., via a DI framework like get_it)
+   final appSettings = getIt<AppSettings>();
+
+   ListenableBuilder(
+     listenable: appSettings,
+     builder: (context, child) {
+       // This Text widget will rebuild whenever any setting changes.
+       return Text('Current theme is: ${appSettings.themeMode.name}');
+     },
+   )
+   ```
+
+## License
+
+This project is licensed under the MIT License.
+
+[pub_badge]: https://img.shields.io/pub/v/preferences_generator.svg
+
+[pub_link]: https://pub.dev/packages/preferences_generator
+
+[lint_badge]: https://img.shields.io/badge/style-lint-40c4ff.svg
+
+[lint_link]: https://pub.dev/packages/lint
+
+[license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
+
+[license_link]: https://opensource.org/licenses/MIT

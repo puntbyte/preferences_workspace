@@ -1,6 +1,4 @@
-## [0.1.0] - 2025-06-11
-
-### Added
+## [1.0.0]
 
 - Initial creation of the Flutter example application.
 - Implemented settings pages for both regular and secure preferences.
