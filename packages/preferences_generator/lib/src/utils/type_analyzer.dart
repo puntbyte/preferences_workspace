@@ -59,12 +59,8 @@ class TypeAnalyzer {
   static String _recordToMapExpression(RecordType type, String access) {
     final entries = <String>[];
 
-    // Handle positional fields
-    int positionalIndex = 1;
-    for (final field in type.positionalFields) {
-      // Use keys like 'f1', 'f2', etc. for positional fields.
-      entries.add("'f$positionalIndex': $access.\$$positionalIndex");
-      positionalIndex++;
+    for (int index = 1; index <= type.positionalFields.length; index++) {
+      entries.add("'f$index': $access.\$$index");
     }
 
     // Handle named fields
