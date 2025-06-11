@@ -1,0 +1,44 @@
+name: app_example
+description: "A new Flutter project."
+
+publish_to: 'none'
+
+version: 1.0.0
+
+environment:
+  sdk: ^3.8.1
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Annotations for your generator
+  preferences_annotation: ^1.0.0
+
+  # State management and DI
+  get_it: ^8.0.3
+  injectable: ^2.5.0
+
+  # Storage Implementations
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^9.2.4
+
+  # UI and Utility
+  intl: ^0.20.2 # Use latest version
+  flutter_colorpicker: ^1.1.0 # For a better color picker UI
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Code Generators
+  build_runner: ^2.4.15
+  injectable_generator: ^2.7.0
+  preferences_generator: ^0.1.0
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,26 @@
+name: preferences_workspace
+
+publish_to: none
+
+environment:
+  sdk: ^3.8.1
+
+workspace:
+  - examples/app_example
+  - examples/console_example
+  - packages/preferences_annotation
+  - packages/preferences_generator
+
+dev_dependencies:
+  melos: ^7.0.0-dev.9
+
+melos:
+  scripts:
+    build:
+      run: dart run build_runner build --delete-conflicting-outputs
+      exec:
+        concurrency: 4
+      packageFilters:
+        scope:
+          - app_example
+          - console_example

@@ -1,0 +1,39 @@
+# Read more about `build.yaml` format:
+# https://github.com/dart-lang/build/blob/master/docs/build_yaml_format.md
+
+targets:
+  $default:
+    builders:
+      preferences_generator|preferences:
+        enabled: true
+        # To make writing tests easier, it's recommended to not use `enabled: true`
+        # and instead use `generate_for` to limit generation to files within lib.
+        #generate_for:
+          #include:
+            #- lib/**.dart
+
+builders:
+  # Name of the builder
+  preferences:
+    # Path to the library defining the builder (Must be first import from list)
+    import: "package:preferences_generator/builder.dart"
+
+    # Name of the function in the imported library that instantiates the builder
+    builder_factories: ["preferencesBuilderFactory"]
+
+    # The extensions of files to be processed by this builder
+    build_extensions: {".dart": [".g.dart"]} # Suffix for generated files
+    #build_extensions: {".dart": [".preferences.g.part"]}
+
+    # Will automatically run this builder on any dependents that apply it
+    auto_apply: dependents
+
+    # The location where build outputs are placed.
+    # - `cache`: (default) The output is only used by subsequent build steps.
+    # - `source`: The output is written to the source tree next to the input.
+    #build_to: cache # Typically 'source' for .g.dart files you want to commit
+    build_to: source
+
+    # Applies this builder *before* the given builders.
+    #applies_builders: ["source_gen|combining_builder"] # Implicitly applied by SharedPartBuilder
+    #runs_before: ["build_verify:build_verify"]
