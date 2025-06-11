@@ -1,9 +1,9 @@
 name: preferences_generator
-description: A starting point for Dart libraries or applications.
-version: 0.1.0
-# repository: https://github.com/my_org/my_repo
-
-publish_to: none
+description: Code generator for creating type-safe preference classes based on
+  preferences_annotations."
+version: 1.0.0
+repository: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_generator
+issue_tracker: https://github.com/puntbyte/preferences_workspace/issues
 
 environment:
   sdk: ^3.8.1

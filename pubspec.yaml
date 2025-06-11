@@ -16,7 +16,7 @@ dev_dependencies:
 
 melos:
   scripts:
-    build:
+    generate:
       run: dart run build_runner build --delete-conflicting-outputs
       exec:
         concurrency: 4

@@ -2,7 +2,8 @@ name: preferences_annotation
 description: Annotations and interfaces for the preferences_generator package, enabling the
   creation of type-safe preference modules.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_annotation
+issue_tracker: https://github.com/puntbyte/preferences_workspace/issues
 
 environment:
   sdk: ^3.8.1

@@ -1,11 +1,29 @@
-# preferences_workspace
+# Preferences Workspace
 
-A new Flutter project.
+This repository is a monorepo containing the `preferences_annotation` and `preferences_generator`
+packages, which together provide a powerful, type-safe code generation solution for managing user
+settings in Dart and Flutter.
 
-## Getting Started
+This monorepo is managed with [Melos](https://melos.invertase.dev).
 
-For help getting started with Flutter development, view the online
-[documentation](https://flutter.dev/).
+## Packages
 
-For instructions integrating Flutter modules to your existing applications,
-see the [add-to-app documentation](https://flutter.dev/to/add-to-app).
+| Package                                                       | Description                                                                          |
+|:--------------------------------------------------------------|:-------------------------------------------------------------------------------------|
+| [`preferences_annotation`](./packages/preferences_annotation) | Defines the public API, including annotations and the `PreferenceAdapter` interface. |
+| [`preferences_generator`](./packages/preferences_generator)   | The build-time code generator. This package contains the primary user documentation. |
+
+## Examples
+
+| Example                                         | Description                                                |
+|:------------------------------------------------|:-----------------------------------------------------------|
+| [`app_example`](./examples/app_example)         | A Flutter application demonstrating a full implementation. |
+| [`console_example`](./examples/console_example) | A command-line application demonstrating pure Dart usage.  |
+
+## Contributing
+
+Contributions are welcome!
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

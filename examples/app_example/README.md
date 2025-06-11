@@ -1,16 +1,22 @@
-# app_example
+# Flutter Example App
 
-A new Flutter project.
+This package is a comprehensive Flutter application that demonstrates how to use the
+`preferences_annotation` and `preferences_generator` packages to build a modern, type-safe settings
+screen.
 
-## Getting Started
+## Features Demonstrated
 
-This project is a starting point for a Flutter application.
+- Implementation of `PreferenceAdapter` for both `shared_preferences` and `flutter_secure_storage`.
+- Usage of all supported data types (`String`, `int`, `Enum`, `Record`, `Color`, etc.).
+- Integration with a dependency injection framework (`get_it` and `injectable`).
+- A reactive UI that updates efficiently using `ChangeNotifier` and `ListenableBuilder`.
+- A clean, modern Material 3 user interface.
 
-A few resources to get you started if this is your first Flutter project:
+For a guide on how to use the core packages in your own project, please see the
+main [Preferences Workspace](../../README.md).
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## How to Run
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Ensure you have bootstrapped the monorepo by running `melos bootstrap` from the root directory.
+2. Run `melos generate` to generate the necessary files.
+3. Run the application using `melos run app_example`.

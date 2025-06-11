@@ -47,3 +47,21 @@ class PreferenceGenerator extends GeneratorForAnnotation<PreferenceModule> {
     ).format(library.accept(emitter).toString());
   }
 }
+
+/// The builder factory that creates an instance of the preference generator.
+///
+/// This function is referenced by `build.yaml` and is the entry point
+/// for the `build_runner` process.
+Builder preferencesBuilder(BuilderOptions options) {
+  return PartBuilder(
+    [PreferenceGenerator()],
+    '.g.dart',
+    header: '''
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+// ignore_for_file: type=lint, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member, no_leading_underscores_for_local_identifiers
+''',
+    // This setting tells the builder to format the generated code.
+    options: options,
+  );
+}
