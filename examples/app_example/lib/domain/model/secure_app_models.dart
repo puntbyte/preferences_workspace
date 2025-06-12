@@ -31,12 +31,12 @@ class ApiSession {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is ApiSession &&
-              runtimeType == other.runtimeType &&
-              accessToken == other.accessToken &&
-              refreshToken == other.refreshToken &&
-              expiresAt == other.expiresAt &&
-              listEquals(scopes, other.scopes);
+      other is ApiSession &&
+          runtimeType == other.runtimeType &&
+          accessToken == other.accessToken &&
+          refreshToken == other.refreshToken &&
+          expiresAt == other.expiresAt &&
+          listEquals(scopes, other.scopes);
 
   @override
   int get hashCode =>
@@ -46,5 +46,6 @@ class ApiSession {
       scopes.hashCode;
 
   @override
-  String toString() => 'ApiSession(accessToken: $accessToken, expiresAt: $expiresAt, scopes: $scopes)';
+  String toString() =>
+      'ApiSession(accessToken: $accessToken, expiresAt: $expiresAt, scopes: $scopes)';
 }

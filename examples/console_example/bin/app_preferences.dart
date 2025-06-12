@@ -13,15 +13,12 @@ abstract class AppPreferences with _$AppPreferences {
     final String username,
 
     // An int preference
-    @PreferenceEntry(defaultValue: 0)
-    final int launchCount,
+    @PreferenceEntry(defaultValue: 0) final int launchCount,
 
     // A nullable DateTime
-    @PreferenceEntry()
-    final DateTime? lastLogin,
+    @PreferenceEntry() final DateTime? lastLogin,
 
     // An enum preference
-    @PreferenceEntry(defaultValue: LogLevel.info)
-    final LogLevel logLevel,
+    @PreferenceEntry(defaultValue: LogLevel.info) final LogLevel logLevel,
   }) = _AppPreferences;
 }

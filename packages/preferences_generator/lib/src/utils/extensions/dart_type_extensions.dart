@@ -6,7 +6,7 @@ import 'package:source_gen/source_gen.dart';
 extension DartTypeExtensions on DartType {
   // Type checkers for specific, non-core types.
   static const _dateTimeChecker = TypeChecker.fromUrl('dart:core#DateTime');
-  static const _colorChecker = TypeChecker.fromUrl('dart:ui#Color');
+  static const _durationChecker = TypeChecker.fromUrl('dart:core#Duration');
 
   /// Returns `true` if this type represents an enum.
   bool get isEnum => element?.kind == ElementKind.ENUM;
@@ -15,10 +15,14 @@ extension DartTypeExtensions on DartType {
   bool get isRecord => this is RecordType;
 
   /// Returns `true` if this type is `dart.ui.Color`.
-  bool get isColor => element != null ? _colorChecker.isExactly(element!) : false;
+  //bool get isColor => element != null ? _colorChecker.isExactly(element!) : false;
 
   /// Returns `true` if this type is `dart.core.DateTime`.
-  bool get isDateTime => element != null ? _dateTimeChecker.isExactly(element!) : false;
+  bool get isDateTime =>
+      element != null ? _dateTimeChecker.isExactly(element!) : false;
+
+  bool get isDuration =>
+      element != null ? _durationChecker.isExactly(element!) : false;
 
   bool get isNullable => toString().endsWith("?");
 }

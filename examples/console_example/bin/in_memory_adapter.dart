@@ -14,7 +14,9 @@ class InMemoryAdapter implements PreferenceAdapter {
   @override
   Future<T?> get<T>(String key) async {
     final value = _storage[key];
-    print('[InMemoryAdapter] GET: key="$key", value="$value" (requesting type <$T>)');
+    print(
+      '[InMemoryAdapter] GET: key="$key", value="$value" (requesting type <$T>)',
+    );
     if (value == null) return null;
     return value as T?;
   }

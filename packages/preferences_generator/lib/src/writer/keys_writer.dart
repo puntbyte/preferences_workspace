@@ -16,9 +16,6 @@ class KeysWriter {
       );
     }).toList();
 
-    return SyntaxWriter.class$(
-      name: classMeta.keysName,
-      fields: fields,
-    );
+    return SyntaxWriter.class$(name: classMeta.keysName, fields: fields);
   }
 }

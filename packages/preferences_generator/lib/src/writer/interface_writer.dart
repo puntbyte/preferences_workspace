@@ -39,8 +39,12 @@ class InterfaceWriter {
 
   List<Method> _buildEntryMethods(EntryDefinition entry) {
     final pascalName = entry.name.toPascalCase();
-    final typeName = entry.type.getDisplayString(withNullability: entry.isNullable);
-    final nonNullableTypeName = entry.type.getDisplayString(withNullability: false);
+    final typeName = entry.type.getDisplayString(
+      withNullability: entry.isNullable,
+    );
+    final nonNullableTypeName = entry.type.getDisplayString(
+      withNullability: false,
+    );
 
     return [
       // Getter (from the abstract class)

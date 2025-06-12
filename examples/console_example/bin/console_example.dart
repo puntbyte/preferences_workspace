@@ -17,10 +17,10 @@ Future<void> main(List<String> arguments) async {
 
   // 3. Print initial default values
   print('\n--- Initial State ---');
-  print('Username: ${prefs.username}');       // Should be 'Guest'
+  print('Username: ${prefs.username}'); // Should be 'Guest'
   print('Launch Count: ${prefs.launchCount}'); // Should be 0
-  print('Log Level: ${prefs.logLevel}');       // Should be LogLevel.info
-  print('Last Login: ${prefs.lastLogin}');     // Should be null
+  print('Log Level: ${prefs.logLevel}'); // Should be LogLevel.info
+  print('Last Login: ${prefs.lastLogin}'); // Should be null
 
   // 4. Set new values
   print('\n--- Setting New Values ---');

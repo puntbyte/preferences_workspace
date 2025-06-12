@@ -19,23 +19,23 @@ abstract class InjectionModule {
 
   @Named('shared')
   @lazySingleton
-  PreferenceAdapter sharedAdapter(SharedPreferences prefs) => SharedPreferencesAdapter(prefs);
+  PreferenceAdapter sharedAdapter(SharedPreferences prefs) =>
+      SharedPreferencesAdapter(prefs);
 
   @Named('secure')
   @lazySingleton
-  PreferenceAdapter secureAdapter(FlutterSecureStorage storage) => SecureStorageAdapter(storage);
+  PreferenceAdapter secureAdapter(FlutterSecureStorage storage) =>
+      SecureStorageAdapter(storage);
 
   @preResolve
   @lazySingleton
   Future<RegularAppSettings> regularSettings(
-    @Named('shared')
-    PreferenceAdapter adapter,
+    @Named('shared') PreferenceAdapter adapter,
   ) => RegularAppSettings.create(adapter);
 
   @preResolve
   @lazySingleton
   Future<SecureAppSettings> secureSettings(
-    @Named('secure')
-    PreferenceAdapter adapter,
+    @Named('secure') PreferenceAdapter adapter,
   ) => SecureAppSettings.create(adapter);
 }

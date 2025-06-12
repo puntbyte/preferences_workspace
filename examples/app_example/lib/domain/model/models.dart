@@ -1,4 +1,3 @@
-
 class UserProfile {
   final String email;
   final int? age;

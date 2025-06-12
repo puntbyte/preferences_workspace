@@ -93,7 +93,7 @@ class _MapEditorTileState extends State<MapEditorTile> {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

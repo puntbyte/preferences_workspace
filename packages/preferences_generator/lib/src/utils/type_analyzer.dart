@@ -10,9 +10,15 @@ class TypeAnalyzer {
   static bool isSupported(DartType type) {
     if (type.isRecord) {
       // Recursively check that all fields within the record are also supported.
-      return (type as RecordType).positionalFields.every((field) {
+      final supported = (type as RecordType).positionalFields.every((field) {
         return isSupported(field.type);
-      }) && (type).namedFields.every((field) => isSupported(field.type));
+      });
+
+      final supportedNamed = type.namedFields.every((field) {
+        return isSupported(field.type);
+      });
+
+      return supported && supportedNamed;
     }
 
     return type.isDartCoreInt ||
@@ -20,16 +26,19 @@ class TypeAnalyzer {
         type.isDartCoreDouble ||
         type.isDartCoreBool ||
         type.isDartCoreList ||
+        type.isDartCoreSet ||
         type.isDartCoreMap ||
         type.isEnum ||
         type.isDateTime ||
-        type.isColor;
+        type.isDuration;
+    //type.isColor;
   }
 
   /// Gets the type that the generator will ask the [PreferenceAdapter] to handle.
   static String getStorageType(DartType type) {
     if (type.isEnum) return 'String?';
     if (type.isRecord) return 'Map<String, dynamic>?';
+    if (type.isDuration) return 'int?';
     return type.getDisplayString(withNullability: true);
   }
 
@@ -37,6 +46,8 @@ class TypeAnalyzer {
   static String buildSerializationExpression(String value, DartType type) {
     if (type.isEnum) return '$value${type.isNullable ? '?' : ''}.name';
     if (type.isRecord) return _recordToMapExpression(type as RecordType, value);
+    if (type.isDuration)
+      return '$value${type.isNullable ? '?' : ''}.inMicroseconds';
     return value;
   }
 
@@ -49,6 +60,10 @@ class TypeAnalyzer {
 
     if (type.isRecord) {
       return '$rawValue == null ? null : ${_mapToRecordExpression(type as RecordType, rawValue)}';
+    }
+
+    if (type.isDuration) {
+      return '$rawValue == null ? null : Duration(microseconds: $rawValue)';
     }
 
     return rawValue;
@@ -80,7 +95,9 @@ class TypeAnalyzer {
     for (final field in type.positionalFields) {
       final fieldKey = 'f$positionalIndex';
       // Use the new safe cast helper
-      positionalArgs.add(_getSafeCastExpression("$access['$fieldKey']", field.type));
+      positionalArgs.add(
+        _getSafeCastExpression("$access['$fieldKey']", field.type),
+      );
       positionalIndex++;
     }
     final positionalPart = positionalArgs.join(', ');
@@ -90,7 +107,9 @@ class TypeAnalyzer {
     for (final field in type.namedFields) {
       final fieldKey = field.name;
       // Use the new safe cast helper
-      namedArgs.add("${field.name}: ${_getSafeCastExpression("$access['$fieldKey']", field.type)}");
+      namedArgs.add(
+        "${field.name}: ${_getSafeCastExpression("$access['$fieldKey']", field.type)}",
+      );
     }
     final namedPart = namedArgs.join(', ');
 
@@ -116,29 +135,15 @@ class TypeAnalyzer {
     final typeName = fieldType.getDisplayString(withNullability: false);
 
     // If the record's field is itself nullable, a simple nullable cast is safe.
-    if (fieldType.isNullable) {
-      return "$mapAccess as $typeName?";
-    }
+    if (fieldType.isNullable) return "$mapAccess as $typeName?";
 
     // If the record's field is NOT nullable, we must provide a default.
-    if (fieldType.isDartCoreInt) {
-      return "($mapAccess as int?) ?? 0";
-    }
-    if (fieldType.isDartCoreDouble) {
-      return "($mapAccess as double?) ?? 0.0";
-    }
-    if (fieldType.isDartCoreBool) {
-      return "($mapAccess as bool?) ?? false";
-    }
-    if (fieldType.isDartCoreString) {
-      return "($mapAccess as String?) ?? ''";
-    }
-    if (fieldType.isDartCoreList) {
-      return "($mapAccess as List?) ?? const []";
-    }
-    if (fieldType.isDartCoreMap) {
-      return "($mapAccess as Map?) ?? const {}";
-    }
+    if (fieldType.isDartCoreInt) return "($mapAccess as int?) ?? 0";
+    if (fieldType.isDartCoreDouble) return "($mapAccess as double?) ?? 0.0";
+    if (fieldType.isDartCoreBool) return "($mapAccess as bool?) ?? false";
+    if (fieldType.isDartCoreString) return "($mapAccess as String?) ?? ''";
+    if (fieldType.isDartCoreList) return "($mapAccess as List?) ?? const []";
+    if (fieldType.isDartCoreMap) return "($mapAccess as Map?) ?? const {}";
 
     // For other complex non-nullable types like Enums or nested Records,
     // a hard cast is the only option, as we can't invent a default.

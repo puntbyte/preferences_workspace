@@ -1,7 +1,9 @@
 extension StringExtensions on String {
   /// Trims the characters given by [text] from before and after [String].
   String trimString(String text) {
-    final pattern = text.isNotEmpty ? RegExp("^[$text]+|[$text]+\$") : RegExp(r"^\s+|\s+$");
+    final pattern = text.isNotEmpty
+        ? RegExp("^[$text]+|[$text]+\$")
+        : RegExp(r"^\s+|\s+$");
     return replaceAll(pattern, '');
   }
 
@@ -10,7 +12,9 @@ extension StringExtensions on String {
     // Use a regular expression to split the string at word boundaries
     final processedString = replaceAllMapped(
       RegExp(r'(?<=[a-z])(?=[A-Z])|[_\-\s]+'),
-      (_) { return ' '; },
+      (_) {
+        return ' ';
+      },
     );
     return processedString.trim().split(' ');
   }
@@ -22,10 +26,13 @@ extension StringExtensions on String {
     if (parts.isEmpty) return '';
 
     final firstWord = parts.first.toLowerCase();
-    final otherWords = parts.skip(1).map((word) {
-      if (word.isEmpty) return '';
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join('');
+    final otherWords = parts
+        .skip(1)
+        .map((word) {
+          if (word.isEmpty) return '';
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join('');
 
     return firstWord + otherWords;
   }
@@ -34,9 +41,11 @@ extension StringExtensions on String {
   String toPascalCase() {
     if (isEmpty) return this;
     final parts = autoSplitCase();
-    return parts.map((word) {
-      if (word.isEmpty) return '';
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join('');
+    return parts
+        .map((word) {
+          if (word.isEmpty) return '';
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join('');
   }
 }

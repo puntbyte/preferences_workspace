@@ -20,8 +20,10 @@ class NameRegistry {
   // --- Generated Field & Variable Names ---
   static const adapterFieldName = '_adapter';
   static String cachedField(String entryName) => '_$entryName';
-  static String rawValueVar(String entryName) => 'rawValueFor${entryName.toPascalCase()}';
-  static String newValueVar(String entryName) => 'newValueFor${entryName.toPascalCase()}';
+  static String rawValueVar(String entryName) =>
+      'rawValueFor${entryName.toPascalCase()}';
+  static String newValueVar(String entryName) =>
+      'newValueFor${entryName.toPascalCase()}';
 
   static const changeMarkerVar = 'P_changed';
 
@@ -34,7 +36,8 @@ class NameRegistry {
   static const publicClearMethod = 'clear';
 
   static String setter(String entryName) => 'set${entryName.toPascalCase()}';
-  static String removerMethod(String entryName) => 'remove${entryName.toPascalCase()}';
+  static String removerMethod(String entryName) =>
+      'remove${entryName.toPascalCase()}';
   static String asyncGetter(String entryName) => '${entryName}Async';
 
   static const ignoreWords = <String>[
@@ -44,6 +47,6 @@ class NameRegistry {
     "hasListeners",
     "notifyListeners",
     "load",
-    "loading"
+    "loading",
   ];
 }

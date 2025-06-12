@@ -16,10 +16,10 @@ import 'package:source_gen/source_gen.dart';
 class PreferenceGenerator extends GeneratorForAnnotation<PreferenceModule> {
   @override
   FutureOr<String> generateForAnnotatedElement(
-      Element element,
-      ConstantReader annotation,
-      BuildStep buildStep,
-      ) async {
+    Element element,
+    ConstantReader annotation,
+    BuildStep buildStep,
+  ) async {
     if (element is! ClassElement) throw ExceptionHandler.notAClass(element);
 
     final module = ModuleDefinition.fromElement(element);
@@ -29,11 +29,7 @@ class PreferenceGenerator extends GeneratorForAnnotation<PreferenceModule> {
     final implementationClass = ImplementationWriter(module).write();
 
     final library = SyntaxWriter.library(
-      elements: [
-        keysClass,
-        interfaceMixin,
-        implementationClass,
-      ],
+      elements: [keysClass, interfaceMixin, implementationClass],
     );
 
     final emitter = DartEmitter(

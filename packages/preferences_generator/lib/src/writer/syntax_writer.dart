@@ -40,8 +40,10 @@ class SyntaxWriter {
     List<Code>? initializers,
     Code? body,
   }) => Constructor((builder) {
-    if (requiredParameters != null) builder.requiredParameters.addAll(requiredParameters);
-    if (optionalParameters != null) builder.optionalParameters.addAll(optionalParameters);
+    if (requiredParameters != null)
+      builder.requiredParameters.addAll(requiredParameters);
+    if (optionalParameters != null)
+      builder.optionalParameters.addAll(optionalParameters);
     if (initializers != null) builder.initializers.addAll(initializers);
     if (body != null) builder.body = body;
   });
@@ -101,8 +103,10 @@ class SyntaxWriter {
     if (modifier != null) builder.modifier = modifier;
     if (body != null) builder.body = body;
     if (isLambda != null) builder.lambda = isLambda;
-    if (requiredParameters != null) builder.requiredParameters.addAll(requiredParameters);
-    if (optionalParameters != null) builder.optionalParameters.addAll(optionalParameters);
+    if (requiredParameters != null)
+      builder.requiredParameters.addAll(requiredParameters);
+    if (optionalParameters != null)
+      builder.optionalParameters.addAll(optionalParameters);
     if (annotations != null) builder.annotations.addAll(annotations);
   });
 

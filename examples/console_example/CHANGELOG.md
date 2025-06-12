@@ -1,3 +1,7 @@
+## [1.0.1]
+
+- Updated the versions of dependencies to their latest releases.
+
 ## [1.0.0]
 
 - Initial creation of the Dart console example.

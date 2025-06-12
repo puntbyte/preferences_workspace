@@ -24,7 +24,8 @@ class ModuleDefinition {
   });
 
   factory ModuleDefinition.fromElement(ClassElement element) {
-    if (!element.isAbstract) throw ExceptionHandler.moduleMustBeAbstract(element);
+    if (!element.isAbstract)
+      throw ExceptionHandler.moduleMustBeAbstract(element);
 
     final name = element.name;
     final factoryConstructor = element.constructors.firstWhere(
@@ -38,9 +39,13 @@ class ModuleDefinition {
     }*/
 
     factoryConstructor.parameters.firstWhere(
-      (parameter) => const TypeChecker.fromRuntime(PreferenceAdapter)
-          .isAssignableFromType(parameter.type) && parameter.isPositional,
-      orElse: () => throw ExceptionHandler.missingAdapterParameter(factoryConstructor),
+      (parameter) =>
+          const TypeChecker.fromRuntime(
+            PreferenceAdapter,
+          ).isAssignableFromType(parameter.type) &&
+          parameter.isPositional,
+      orElse: () =>
+          throw ExceptionHandler.missingAdapterParameter(factoryConstructor),
     );
 
     final entries = factoryConstructor.parameters
@@ -49,8 +54,9 @@ class ModuleDefinition {
         .toList();
 
     // Check for other class properties.
-    final usesChangeNotifier = element.allSupertypes
-        .any((interfaceType) => interfaceType.element.name == 'ChangeNotifier');
+    final usesChangeNotifier = element.allSupertypes.any(
+      (interfaceType) => interfaceType.element.name == 'ChangeNotifier',
+    );
 
     return ModuleDefinition(
       name: name,

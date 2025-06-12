@@ -14,7 +14,9 @@ class ImplementationWriter {
   Class write() {
     return SyntaxWriter.class$(
       name: module.implementationName,
-      extend: module.usesChangeNotifier ? const Reference('ChangeNotifier') : null,
+      extend: module.usesChangeNotifier
+          ? const Reference('ChangeNotifier')
+          : null,
       //mixins: [Reference(module.name)],
       implements: [Reference(module.name)],
       fields: _buildFields(),
@@ -34,28 +36,40 @@ class ImplementationWriter {
         modifier: FieldModifier.final$,
       ),
 
-      ...module.entries.map((entry) => SyntaxWriter.field(
-        name: NameRegistry.cachedField(entry.name),
-        type: Reference(entry.type.getDisplayString(withNullability: true)),
-      )),
+      ...module.entries.map(
+        (entry) => SyntaxWriter.field(
+          name: NameRegistry.cachedField(entry.name),
+          type: Reference(entry.type.getDisplayString(withNullability: true)),
+        ),
+      ),
     ];
   }
 
   Constructor _buildConstructor() {
     return SyntaxWriter.constructor(
-      requiredParameters: [SyntaxWriter.parameter(
-        name: NameRegistry.adapterFieldName,
-        type: const Reference(NameRegistry.adapterInterface),
-        toThis: true,
-      )],
+      requiredParameters: [
+        SyntaxWriter.parameter(
+          name: NameRegistry.adapterFieldName,
+          type: const Reference(NameRegistry.adapterInterface),
+          toThis: true,
+        ),
+      ],
 
-      optionalParameters: module.entries.map((entry) => SyntaxWriter.parameter(
-        name: entry.name,
-        type: Reference(entry.type.getDisplayString(withNullability: entry.isNullable)),
-        isNamed: true,
-        defaultTo: entry.defaultValueCode != null ? Code(entry.defaultValueCode!) : null,
-        isRequired: entry.defaultValueCode == null && !entry.isNullable,
-      )).toList(),
+      optionalParameters: module.entries
+          .map(
+            (entry) => SyntaxWriter.parameter(
+              name: entry.name,
+              type: Reference(
+                entry.type.getDisplayString(withNullability: entry.isNullable),
+              ),
+              isNamed: true,
+              defaultTo: entry.defaultValueCode != null
+                  ? Code(entry.defaultValueCode!)
+                  : null,
+              isRequired: entry.defaultValueCode == null && !entry.isNullable,
+            ),
+          )
+          .toList(),
 
       initializers: module.entries.map((entry) {
         return Code('${NameRegistry.cachedField(entry.name)} = ${entry.name}');
@@ -64,7 +78,9 @@ class ImplementationWriter {
   }
 
   List<Method> _buildLifecycleMethods() {
-    final loadBody = StringBuffer('bool ${NameRegistry.changeMarkerVar} = false;\n');
+    final loadBody = StringBuffer(
+      'bool ${NameRegistry.changeMarkerVar} = false;\n',
+    );
 
     for (final entry in module.entries) {
       final keyConst = '${module.keysName}.${entry.name}';
@@ -73,15 +89,26 @@ class ImplementationWriter {
       final rawValueVar = NameRegistry.rawValueVar(entry.name);
       final newValueVar = NameRegistry.newValueVar(entry.name);
 
-      loadBody.writeln('final $rawValueVar = await ${NameRegistry.adapterFieldName}.get<$storageType>($keyConst);');
-      final deserializationExpr = TypeAnalyzer.buildDeserializationExpression(rawValueVar, entry.type);
+      loadBody.writeln(
+        'final $rawValueVar = await ${NameRegistry.adapterFieldName}.get<$storageType>($keyConst);',
+      );
+      final deserializationExpr = TypeAnalyzer.buildDeserializationExpression(
+        rawValueVar,
+        entry.type,
+      );
       final finalDefault = entry.defaultValueCode ?? 'null';
-      loadBody.writeln('final $newValueVar = $deserializationExpr ?? $finalDefault;');
-      loadBody.writeln('if ($cachedVar != $newValueVar) { $cachedVar = $newValueVar; ${NameRegistry.changeMarkerVar} = true; }');
+      loadBody.writeln(
+        'final $newValueVar = $deserializationExpr ?? $finalDefault;',
+      );
+      loadBody.writeln(
+        'if ($cachedVar != $newValueVar) { $cachedVar = $newValueVar; ${NameRegistry.changeMarkerVar} = true; }',
+      );
     }
 
     if (module.usesChangeNotifier) {
-      loadBody.writeln('if (${NameRegistry.changeMarkerVar}) { notifyListeners(); }');
+      loadBody.writeln(
+        'if (${NameRegistry.changeMarkerVar}) { notifyListeners(); }',
+      );
     }
 
     return [
@@ -115,8 +142,12 @@ class ImplementationWriter {
   List<Method> _buildEntryMethods(EntryDefinition entry) {
     final keyConst = '${module.keysName}.${entry.name}';
     final cachedVar = NameRegistry.cachedField(entry.name);
-    final typeName = entry.type.getDisplayString(withNullability: entry.isNullable);
-    final nonNullableTypeName = entry.type.getDisplayString(withNullability: false);
+    final typeName = entry.type.getDisplayString(
+      withNullability: entry.isNullable,
+    );
+    final nonNullableTypeName = entry.type.getDisplayString(
+      withNullability: false,
+    );
 
     final getter = SyntaxWriter.method(
       name: entry.name,
@@ -139,11 +170,14 @@ class ImplementationWriter {
     );
 
     // Pre-calculate the necessary code strings at BUILD TIME.
-    final serializationExpr = TypeAnalyzer
-        .buildSerializationExpression(NameRegistry.valueParameter, entry.type);
+    final serializationExpr = TypeAnalyzer.buildSerializationExpression(
+      NameRegistry.valueParameter,
+      entry.type,
+    );
 
-    final storageTypeForSet = TypeAnalyzer
-        .getStorageType(entry.type).replaceAll('?', '');
+    final storageTypeForSet = TypeAnalyzer.getStorageType(
+      entry.type,
+    ).replaceAll('?', '');
 
     final setter = SyntaxWriter.method(
       name: NameRegistry.setter(entry.name),
@@ -151,7 +185,10 @@ class ImplementationWriter {
       returns: const Reference('Future<void>'),
       modifier: MethodModifier.async,
       requiredParameters: [
-        SyntaxWriter.parameter(name: NameRegistry.valueParameter, type: Reference(nonNullableTypeName)),
+        SyntaxWriter.parameter(
+          name: NameRegistry.valueParameter,
+          type: Reference(nonNullableTypeName),
+        ),
       ],
       body: Code('''
         if ($cachedVar != ${NameRegistry.valueParameter}) {
@@ -166,16 +203,23 @@ class ImplementationWriter {
     String defaultValueInitializationCode;
     final defaultValueExpr = entry.defaultValueCode ?? 'null';
 
-    if (entry.type is InterfaceType && (entry.type as InterfaceType).typeArguments.isNotEmpty) {
+    if (entry.type is InterfaceType &&
+        (entry.type as InterfaceType).typeArguments.isNotEmpty) {
       final type = entry.type as InterfaceType;
       if (type.isDartCoreList && defaultValueExpr == 'const []') {
         // e.g., List<String> -> <String>
-        final typeArg = type.typeArguments.first.getDisplayString(withNullability: true);
+        final typeArg = type.typeArguments.first.getDisplayString(
+          withNullability: true,
+        );
         defaultValueInitializationCode = 'const <$typeArg>[]';
       } else if (type.isDartCoreMap && defaultValueExpr == 'const {}') {
         // e.g., Map<String, int> -> <String, int>
-        final keyArg = type.typeArguments[0].getDisplayString(withNullability: true);
-        final valueArg = type.typeArguments[1].getDisplayString(withNullability: true);
+        final keyArg = type.typeArguments[0].getDisplayString(
+          withNullability: true,
+        );
+        final valueArg = type.typeArguments[1].getDisplayString(
+          withNullability: true,
+        );
         defaultValueInitializationCode = 'const <$keyArg, $valueArg>{}';
       } else {
         // For all other cases, the existing code is correct.
@@ -184,8 +228,6 @@ class ImplementationWriter {
     } else {
       defaultValueInitializationCode = defaultValueExpr;
     }
-
-
 
     final remover = SyntaxWriter.method(
       name: NameRegistry.removerMethod(entry.name),
@@ -202,11 +244,6 @@ class ImplementationWriter {
       '''),
     );
 
-    return [
-      getter,
-      asyncGetter,
-      setter,
-      remover,
-    ];
+    return [getter, asyncGetter, setter, remover];
   }
 }

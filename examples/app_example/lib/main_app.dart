@@ -24,7 +24,9 @@ class _MainAppState extends State<MainApp> {
     super.initState();
     // Initialize local state from settings
     _themeMode = _settings.themeMode;
-    _accentColor = _settings.accentColor;
+    _accentColor = _settings.accentColor != null
+        ? Color(_settings.accentColor!)
+        : null;
 
     // Add the listener
     _settings.addListener(_onSettingsChanged);
@@ -39,12 +41,15 @@ class _MainAppState extends State<MainApp> {
   // This listener now selectively checks for changes that affect the theme.
   void _onSettingsChanged() {
     // Check if theme-specific settings have changed
-    if (_themeMode != _settings.themeMode || _accentColor != _settings.accentColor) {
+    if (_themeMode != _settings.themeMode ||
+        _accentColor != _settings.accentColor) {
       if (mounted) {
         // Only call setState if a theme property changed
         setState(() {
           _themeMode = _settings.themeMode;
-          _accentColor = _settings.accentColor;
+          _accentColor = _settings.accentColor != null
+              ? Color(_settings.accentColor!)
+              : null;
         });
       }
     }

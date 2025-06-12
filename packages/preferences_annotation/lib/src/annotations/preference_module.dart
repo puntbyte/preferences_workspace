@@ -2,12 +2,11 @@ import 'package:meta/meta.dart';
 
 import '../interfaces/preference_adapter.dart';
 
-/// Annotates an abstract class to be processed by `preferences_generator`,
-/// marking it as a module of related user preferences.
+/// Annotates an abstract class to be processed by `preferences_generator`, marking it as a module
+/// of related user preferences.
 ///
-/// The generator will create a concrete implementation of this abstract class
-/// that interacts with a [PreferenceAdapter] backend to persist and retrieve
-/// preference values.
+/// The generator will create a concrete implementation of this abstract class that interacts with
+/// a [PreferenceAdapter] backend to persist and retrieve preference values.
 ///
 /// ### Example:
 ///

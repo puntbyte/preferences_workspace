@@ -46,9 +46,9 @@ mixin _$RegularAppSettings {
   Future<AppFontSize> fontSizeAsync();
   Future<void> setFontSize(AppFontSize value);
   Future<void> removeFontSize();
-  Color? get accentColor;
-  Future<Color?> accentColorAsync();
-  Future<void> setAccentColor(Color value);
+  int? get accentColor;
+  Future<int?> accentColorAsync();
+  Future<void> setAccentColor(int value);
   Future<void> removeAccentColor();
   AppLanguage get appLanguage;
   Future<AppLanguage> appLanguageAsync();
@@ -93,7 +93,7 @@ class _RegularAppSettings extends ChangeNotifier implements RegularAppSettings {
     PreferenceAdapter this._adapter, {
     ThemeMode themeMode = ThemeMode.system,
     AppFontSize fontSize = AppFontSize.medium,
-    Color? accentColor,
+    int? accentColor,
     AppLanguage appLanguage = AppLanguage.english,
     String? lastSeenArticleId,
     List<String> bookmarkedArticleIds = const [],
@@ -125,7 +125,7 @@ class _RegularAppSettings extends ChangeNotifier implements RegularAppSettings {
 
   AppFontSize _fontSize;
 
-  Color? _accentColor;
+  int? _accentColor;
 
   AppLanguage _appLanguage;
 
@@ -166,7 +166,7 @@ class _RegularAppSettings extends ChangeNotifier implements RegularAppSettings {
       _fontSize = newValueForFontSize;
       P_changed = true;
     }
-    final rawValueForAccentColor = await _adapter.get<Color?>(
+    final rawValueForAccentColor = await _adapter.get<int?>(
       _RegularAppSettingsKeys.accentColor,
     );
     final newValueForAccentColor = rawValueForAccentColor ?? null;
@@ -334,20 +334,20 @@ class _RegularAppSettings extends ChangeNotifier implements RegularAppSettings {
   }
 
   @override
-  Color? get accentColor => _accentColor;
+  int? get accentColor => _accentColor;
 
   @override
-  Future<Color?> accentColorAsync() async {
+  Future<int?> accentColorAsync() async {
     await reload();
     return _accentColor;
   }
 
   @override
-  Future<void> setAccentColor(Color value) async {
+  Future<void> setAccentColor(int value) async {
     if (_accentColor != value) {
       _accentColor = value;
       final toStore = value;
-      await _adapter.set<Color>(_RegularAppSettingsKeys.accentColor, toStore);
+      await _adapter.set<int>(_RegularAppSettingsKeys.accentColor, toStore);
       notifyListeners();
     }
   }

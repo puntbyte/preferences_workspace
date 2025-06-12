@@ -24,12 +24,14 @@ class EntryDefinition {
 
   factory EntryDefinition.fromElement(ParameterElement element) {
     // --- TYPE VALIDATION ---
-    if (!TypeAnalyzer.isSupported(element.type)) throw ExceptionHandler.unsupportedType(element);
+    if (!TypeAnalyzer.isSupported(element.type))
+      throw ExceptionHandler.unsupportedType(element);
 
     const checker = TypeChecker.fromRuntime(PreferenceEntry);
     final annotation = checker.firstAnnotationOfExact(element);
 
-    if (annotation == null) throw ExceptionHandler.missingEntryAnnotation(element);
+    if (annotation == null)
+      throw ExceptionHandler.missingEntryAnnotation(element);
 
     final reader = ConstantReader(annotation);
     final name = element.name;
@@ -69,35 +71,41 @@ class EntryDefinition {
         case null:
           return 'null';
         case String():
-        // Correctly escape quotes and wrap in single quotes.
+          // Correctly escape quotes and wrap in single quotes.
           return "'${value.replaceAll("'", "\\'")}'";
         case int():
         case double():
         case bool():
           return value.toString();
         case List():
-        // Recursively build the code for each item in the list.
-          final listItems = value.map((item) {
-            // Wrap each item in a new ConstantReader to continue recursively.
-            final itemObject = ConstantReader(item);
-            return _buildLiteralCode(itemObject);
-          }).join(', ');
+          // Recursively build the code for each item in the list.
+          final listItems = value
+              .map((item) {
+                // Wrap each item in a new ConstantReader to continue recursively.
+                final itemObject = ConstantReader(item);
+                return _buildLiteralCode(itemObject);
+              })
+              .join(', ');
           return 'const [$listItems]';
         case Map():
-          final mapItems = value.entries.map((entry) {
-            // Recursively build for key and value.
-            final keyReader = ConstantReader(entry.key);
-            final valueReader = ConstantReader(entry.value);
-            final key = _buildLiteralCode(keyReader);
-            final value = _buildLiteralCode(valueReader);
-            return '$key: $value';
-          }).join(', ');
+          final mapItems = value.entries
+              .map((entry) {
+                // Recursively build for key and value.
+                final keyReader = ConstantReader(entry.key);
+                final valueReader = ConstantReader(entry.value);
+                final key = _buildLiteralCode(keyReader);
+                final value = _buildLiteralCode(valueReader);
+                return '$key: $value';
+              })
+              .join(', ');
           return 'const {$mapItems}';
         case Set():
-          final setItems = value.map((item) {
-            final itemReader = ConstantReader(item);
-            return _buildLiteralCode(itemReader);
-          }).join(', ');
+          final setItems = value
+              .map((item) {
+                final itemReader = ConstantReader(item);
+                return _buildLiteralCode(itemReader);
+              })
+              .join(', ');
           return 'const {$setItems}';
       }
     }

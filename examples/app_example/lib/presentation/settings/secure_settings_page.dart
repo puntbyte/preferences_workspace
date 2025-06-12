@@ -68,10 +68,10 @@ class _SecureSettingsPageState extends State<SecureSettingsPage> {
               value: _settings.userRole,
               onChanged: (v) => _settings.setUserRole(v!),
               items: UserRole.values
-                  .map((role) => DropdownMenuItem(
-                        value: role,
-                        child: Text(role.name),
-                      ))
+                  .map(
+                    (role) =>
+                        DropdownMenuItem(value: role, child: Text(role.name)),
+                  )
                   .toList(),
             ),
           ),
@@ -84,10 +84,10 @@ class _SecureSettingsPageState extends State<SecureSettingsPage> {
               value: _settings.biometricPreference,
               onChanged: (v) => _settings.setBiometricPreference(v!),
               items: BiometricAuth.values
-                  .map((auth) => DropdownMenuItem(
-                        value: auth,
-                        child: Text(auth.name),
-                      ))
+                  .map(
+                    (auth) =>
+                        DropdownMenuItem(value: auth, child: Text(auth.name)),
+                  )
                   .toList(),
             ),
           ),
@@ -133,17 +133,14 @@ class _SecureSettingsPageState extends State<SecureSettingsPage> {
                   : DateFormat.yMd().format(_settings.sessionExpiryDate!),
             ),
             trailing: const Icon(Icons.calendar_today),
-            onTap: () => _pickDate(
-              context,
-              _settings.sessionExpiryDate,
-              (newDate) {
-                if (newDate == null) {
-                  _settings.removeSessionExpiryDate();
-                } else {
-                  _settings.setSessionExpiryDate(newDate);
-                }
-              },
-            ),
+            onTap: () =>
+                _pickDate(context, _settings.sessionExpiryDate, (newDate) {
+                  if (newDate == null) {
+                    _settings.removeSessionExpiryDate();
+                  } else {
+                    _settings.setSessionExpiryDate(newDate);
+                  }
+                }),
           ),
         ],
       ),

@@ -30,9 +30,18 @@ class RegularSettingsPage extends StatelessWidget {
                   value: settings.themeMode,
                   onChanged: (v) => settings.setThemeMode(v!),
                   items: const [
-                    DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
-                    DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
-                    DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text('System'),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Text('Light'),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Text('Dark'),
+                    ),
                   ],
                 ),
               );
@@ -44,8 +53,11 @@ class RegularSettingsPage extends StatelessWidget {
             builder: (context, child) {
               return ColorPickerTile(
                 title: 'Accent Color',
-                color: settings.accentColor,
-                onColorChanged: settings.setAccentColor,
+                color: settings.accentColor != null
+                    ? Color(settings.accentColor!)
+                    : null,
+                onColorChanged: (value) =>
+                    settings.setAccentColor(value.toARGB32()),
                 onColorCleared: settings.removeAccentColor,
               );
             },

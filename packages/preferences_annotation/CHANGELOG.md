@@ -1,3 +1,7 @@
+## [1.0.1]
+
+- Enhanced description clarity.
+
 ## [1.0.0]
 
 - Initial release of `preferences_annotation`.

@@ -17,8 +17,7 @@ abstract class RegularAppSettings with _$RegularAppSettings, ChangeNotifier {
     @PreferenceEntry(key: 'font_size', defaultValue: AppFontSize.medium)
     final AppFontSize fontSize,
 
-    @PreferenceEntry(key: 'accent_color')
-    final Color? accentColor,
+    @PreferenceEntry(key: 'accent_color') final int? accentColor,
 
     // --- Localization & Content ---
     @PreferenceEntry(key: 'app_language', defaultValue: AppLanguage.english)
@@ -48,11 +47,9 @@ abstract class RegularAppSettings with _$RegularAppSettings, ChangeNotifier {
     final int itemsPerPage,
 
     // --- Toggles ---
-    @PreferenceEntry(defaultValue: true)
-    final bool autoPlayVideos,
+    @PreferenceEntry(defaultValue: true) final bool autoPlayVideos,
 
-    @PreferenceEntry(defaultValue: true)
-    final bool showTutorial,
+    @PreferenceEntry(defaultValue: true) final bool showTutorial,
   }) = _RegularAppSettings;
 
   static Future<RegularAppSettings> create(PreferenceAdapter adapter) async {

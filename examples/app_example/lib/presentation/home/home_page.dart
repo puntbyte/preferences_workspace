@@ -9,9 +9,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Preferences Suite Demo'),
-      ),
+      appBar: AppBar(title: const Text('Preferences Suite Demo')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -48,7 +46,9 @@ class HomePage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (c) => const RegularSettingsPage()),
+                    MaterialPageRoute(
+                      builder: (c) => const RegularSettingsPage(),
+                    ),
                   );
                 },
               ),
