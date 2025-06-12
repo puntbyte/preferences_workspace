@@ -24,3 +24,9 @@ melos:
         scope:
           - app_example
           - console_example
+
+  command:
+    publish:
+      hooks:
+        pre: dart pub run build_runner build
+        post: dart pub run build_runner clean
