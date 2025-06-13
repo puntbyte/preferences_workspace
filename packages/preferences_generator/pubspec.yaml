@@ -1,7 +1,7 @@
 name: preferences_generator
 description: A powerful code generator that creates type-safe, boilerplate-free preference modules 
   from simple abstract classes, used with `preferences_annotation`.
-version: 1.1.0
+version: 1.1.1
 repository: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_generator
 issue_tracker: https://github.com/puntbyte/preferences_workspace/issues
 topics: [preferences, settings, storage, type-safe]

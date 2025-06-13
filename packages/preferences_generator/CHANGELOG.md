@@ -1,3 +1,7 @@
+## [1.1.1]
+
+- Enhanced documentation clarity.
+
 ## [1.1.0]
 
 - Enhanced description clarity.
