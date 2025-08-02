@@ -1,3 +1,7 @@
+## [1.1.0]
+
+- Updated dependencies to their latest releases.
+
 ## [1.0.1]
 
 - Updated the versions of dependencies to their latest releases.

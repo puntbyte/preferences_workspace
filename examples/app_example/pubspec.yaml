@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: 'none'
 
-version: 1.1.0
+version: 1.1.1
 
 environment:
   sdk: ^3.8.1
@@ -15,11 +15,11 @@ dependencies:
     sdk: flutter
 
   # Annotations for your generator
-  preferences_annotation: ^1.0.1
+  preferences_annotation: ^1.0.2
 
   # State management and DI
-  get_it: ^8.0.3
-  injectable: ^2.5.0
+  get_it: ^8.1.0
+  injectable: ^2.5.1
 
   # Storage Implementations
   shared_preferences: ^2.5.3
@@ -34,9 +34,9 @@ dev_dependencies:
     sdk: flutter
 
   # Code Generators
-  build_runner: ^2.4.15
-  injectable_generator: ^2.7.0
-  preferences_generator: ^1.1.0
+  build_runner: ^2.6.0
+  injectable_generator: ^2.8.0
+  preferences_generator: ^1.1.1
 
   flutter_lints: ^6.0.0
 

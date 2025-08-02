@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 import 'package:preferences_generator/src/utils/extensions/dart_type_extensions.dart';
@@ -22,19 +22,21 @@ class EntryDefinition {
     required this.isNullable,
   });
 
-  factory EntryDefinition.fromElement(ParameterElement element) {
+  factory EntryDefinition.fromElement(FormalParameterElement element) {
     // --- TYPE VALIDATION ---
-    if (!TypeAnalyzer.isSupported(element.type))
+    if (!TypeAnalyzer.isSupported(element.type)) {
       throw ExceptionHandler.unsupportedType(element);
+    }
 
     const checker = TypeChecker.fromRuntime(PreferenceEntry);
     final annotation = checker.firstAnnotationOfExact(element);
 
-    if (annotation == null)
+    if (annotation == null) {
       throw ExceptionHandler.missingEntryAnnotation(element);
+    }
 
     final reader = ConstantReader(annotation);
-    final name = element.name;
+    final name = element.displayName;
     final storageKey = reader.read('key').literalValue as String? ?? name;
 
     String? defaultValueCode;

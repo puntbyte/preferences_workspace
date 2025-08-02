@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 import 'package:preferences_generator/src/model/entry_definition.dart';
 import 'package:source_gen/source_gen.dart';
@@ -23,12 +24,11 @@ class ModuleDefinition {
     required this.usesChangeNotifier,
   });
 
-  factory ModuleDefinition.fromElement(ClassElement element) {
-    if (!element.isAbstract)
-      throw ExceptionHandler.moduleMustBeAbstract(element);
+  factory ModuleDefinition.fromElement(ClassElement2 element) {
+    if (!element.isAbstract) throw ExceptionHandler.moduleMustBeAbstract(element);
 
-    final name = element.name;
-    final factoryConstructor = element.constructors.firstWhere(
+    final name = element.displayName;
+    final factoryConstructor = element.constructors2.firstWhere(
       (constructor) => constructor.isFactory,
       orElse: () => throw ExceptionHandler.missingFactoryConstructor(element),
     );
@@ -38,7 +38,7 @@ class ModuleDefinition {
       throw ExceptionHandler.incorrectFactoryRedirect(factoryConstructor);
     }*/
 
-    factoryConstructor.parameters.firstWhere(
+    factoryConstructor.formalParameters.firstWhere(
       (parameter) =>
           const TypeChecker.fromRuntime(
             PreferenceAdapter,
@@ -48,7 +48,7 @@ class ModuleDefinition {
           throw ExceptionHandler.missingAdapterParameter(factoryConstructor),
     );
 
-    final entries = factoryConstructor.parameters
+    final entries = factoryConstructor.formalParameters
         .where((parameter) => parameter.isNamed)
         .map((parameter) => EntryDefinition.fromElement(parameter))
         .toList();

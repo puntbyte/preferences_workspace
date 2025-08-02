@@ -1,3 +1,8 @@
+## [1.1.2]
+
+- Updated dependencies to their latest releases.
+- Removed deprecated code.
+
 ## [1.1.1]
 
 - Enhanced documentation clarity.

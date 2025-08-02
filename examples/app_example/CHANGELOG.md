@@ -1,3 +1,7 @@
+## [1.1.1]
+
+- Updated dependencies to their latest releases.
+
 ## [1.1.0]
 
 - Converted a `Color` object to an `int` representation.

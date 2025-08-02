@@ -1,7 +1,7 @@
 name: preferences_annotation
 description: Defines annotations and interfaces for `preferences_generator`, enabling type-safe, 
   boilerplate-free preference management.
-version: 1.0.1
+version: 1.0.2
 repository: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_annotation
 issue_tracker: https://github.com/puntbyte/preferences_workspace/issues
 
@@ -11,7 +11,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  meta: '>=1.0.0 <2.0.0'
+  meta: ^1.0.0
 
 dev_dependencies:
   lints: ^6.0.0
