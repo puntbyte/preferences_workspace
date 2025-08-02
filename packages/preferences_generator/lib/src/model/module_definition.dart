@@ -1,4 +1,3 @@
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 import 'package:preferences_generator/src/model/entry_definition.dart';
@@ -55,7 +54,7 @@ class ModuleDefinition {
 
     // Check for other class properties.
     final usesChangeNotifier = element.allSupertypes.any(
-      (interfaceType) => interfaceType.element.name == 'ChangeNotifier',
+      (interfaceType) => interfaceType.element3.name3 == 'ChangeNotifier',
     );
 
     return ModuleDefinition(

@@ -46,8 +46,7 @@ class TypeAnalyzer {
   static String buildSerializationExpression(String value, DartType type) {
     if (type.isEnum) return '$value${type.isNullable ? '?' : ''}.name';
     if (type.isRecord) return _recordToMapExpression(type as RecordType, value);
-    if (type.isDuration)
-      return '$value${type.isNullable ? '?' : ''}.inMicroseconds';
+    if (type.isDuration) return '$value${type.isNullable ? '?' : ''}.inMicroseconds';
     return value;
   }
 
