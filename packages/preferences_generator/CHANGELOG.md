@@ -1,3 +1,7 @@
+## [1.1.3]
+
+- Downgraded `build` to be compatible with other packages.
+
 ## [1.1.2]
 
 - Updated dependencies to their latest releases.
