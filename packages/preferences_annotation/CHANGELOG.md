@@ -1,3 +1,7 @@
+## [1.0.2]
+
+- Updated dependencies to their latest releases.
+
 ## [1.0.1]
 
 - Enhanced description clarity.
