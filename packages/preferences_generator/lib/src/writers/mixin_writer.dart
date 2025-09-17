@@ -5,7 +5,7 @@ import 'package:preferences_generator/src/builders/module_methods_builder.dart';
 import 'package:preferences_generator/src/builders/public_getters_builder.dart';
 import 'package:preferences_generator/src/models/module.dart';
 import 'package:preferences_generator/src/utils/names.dart';
-import 'package:preferences_generator/src/utils/syntax_writer.dart';
+import 'package:preferences_generator/src/utils/syntax_builder.dart';
 
 /// Generates the `_$MyModule` mixin by orchestrating specialized builders.
 class MixinWriter {
@@ -30,7 +30,7 @@ class MixinWriter {
       methods.addAll(EntryMethodsBuilder(module: module, entry: entry).build());
     }
 
-    return SyntaxWriter.mixin(
+    return SyntaxBuilder.mixin(
       name: Names.interfaceMixin(module.name),
       methods: methods,
     );

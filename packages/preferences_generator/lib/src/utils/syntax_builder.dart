@@ -5,8 +5,8 @@ import 'package:code_builder/code_builder.dart';
 /// package.
 ///
 /// This class is not meant to be instantiated.
-class SyntaxWriter {
-  const SyntaxWriter._();
+class SyntaxBuilder {
+  const SyntaxBuilder._();
 
   /// Creates a Dart library.
   ///

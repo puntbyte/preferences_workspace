@@ -1,7 +1,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:preferences_generator/src/models/module.dart';
 import 'package:preferences_generator/src/utils/names.dart';
-import 'package:preferences_generator/src/utils/syntax_writer.dart';
+import 'package:preferences_generator/src/utils/syntax_builder.dart';
 
 /// Generates the `_MyModule` concrete class which extends the user's class, provides the state
 /// (backing fields), and connects to the storage adapter.
@@ -10,7 +10,7 @@ class ImplementationWriter {
 
   const ImplementationWriter(this.module);
 
-  Class write() => SyntaxWriter.class$(
+  Class write() => SyntaxBuilder.class$(
     name: Names.implementationClass(module.name),
     extend: Reference(module.name),
     mixins: [Reference(Names.interfaceMixin(module.name))],
@@ -20,7 +20,7 @@ class ImplementationWriter {
 
   List<Field> _buildFields() {
     final fields = <Field>[
-      SyntaxWriter.field(
+      SyntaxBuilder.field(
         name: Names.adapterFieldName,
         annotations: [const Reference('override')],
         modifier: FieldModifier.final$,
@@ -30,7 +30,7 @@ class ImplementationWriter {
 
     for (final entry in module.entries) {
       fields.add(
-        SyntaxWriter.field(
+        SyntaxBuilder.field(
           name: Names.cachedField(entry.name),
           annotations: [const Reference('override')],
           type: Reference(entry.type.getDisplayString()),
@@ -42,7 +42,7 @@ class ImplementationWriter {
     for (final entry in module.entries.where((e) => e.resolvedStream.enabled)) {
       final streamType = entry.type.getDisplayString();
       fields.add(
-        SyntaxWriter.field(
+        SyntaxBuilder.field(
           name: Names.streamControllerField(entry.name),
           annotations: [const Reference('override')],
           modifier: FieldModifier.final$,
@@ -56,8 +56,8 @@ class ImplementationWriter {
   }
 
   Constructor _buildConstructor() {
-    return SyntaxWriter.constructor(
-      requiredParameter: SyntaxWriter.parameter(name: Names.adapterFieldName, toThis: true),
+    return SyntaxBuilder.constructor(
+      requiredParameter: SyntaxBuilder.parameter(name: Names.adapterFieldName, toThis: true),
       initializer: Code('super._(${_buildSuperConstructorArgs()})'),
       body: Code(_buildInitLogic()),
     );

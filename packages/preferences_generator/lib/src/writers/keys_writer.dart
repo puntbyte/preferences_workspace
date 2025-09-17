@@ -1,6 +1,6 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:preferences_generator/src/models/module.dart';
-import 'package:preferences_generator/src/utils/syntax_writer.dart';
+import 'package:preferences_generator/src/utils/syntax_builder.dart';
 
 class KeysWriter {
   final Module module;
@@ -10,7 +10,7 @@ class KeysWriter {
   Class write() {
     final fields = module.entries
         .map(
-          (entry) => SyntaxWriter.field(
+          (entry) => SyntaxBuilder.field(
             name: entry.name,
             isStatic: true,
             modifier: FieldModifier.constant,
@@ -19,6 +19,6 @@ class KeysWriter {
         )
         .toList();
 
-    return SyntaxWriter.class$(name: module.keysName, fields: fields);
+    return SyntaxBuilder.class$(name: module.keysName, fields: fields);
   }
 }

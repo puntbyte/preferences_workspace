@@ -38,12 +38,8 @@ extension StringExtensions on String {
   /// Handles `camelCase`, `PascalCase`, `snake_case`, and `kebab-case`.
   List<String> _autoSplit() {
     if (isEmpty) return [];
-    // This regex splits on:
-    // 1. Transitions from a lowercase letter to an uppercase letter.
-    // 2. Underscores, hyphens, and spaces.
     final processed = replaceAllMapped(
-      RegExp(r'(?<=[a-z])(?=[A-Z])|[_\-\s]+'),
-      (match) => ' ',
+      RegExp(r'(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|[_\-\s]+'), (match) => ' ',
     );
 
     return processed.trim().split(' ');

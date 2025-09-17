@@ -3,7 +3,7 @@ import 'package:preferences_generator/src/builders/load_method_body_builder.dart
 import 'package:preferences_generator/src/models/module.dart';
 import 'package:preferences_generator/src/utils/method_namer.dart';
 import 'package:preferences_generator/src/utils/names.dart';
-import 'package:preferences_generator/src/utils/syntax_writer.dart';
+import 'package:preferences_generator/src/utils/syntax_builder.dart';
 
 /// Generates the built-in, module-level methods like `refresh`, `removeAll`,
 /// `dispose`, and the private `_load` method.
@@ -19,7 +19,7 @@ class ModuleMethodsBuilder {
     if (module.refresh.enabled) {
       final name = MethodNamer.getName(module.refresh.name!, module.refresh);
       methods.add(
-        SyntaxWriter.method(
+        SyntaxBuilder.method(
           name: name,
           returns: const Reference('Future<void>'),
           modifier: MethodModifier.async,
@@ -31,7 +31,7 @@ class ModuleMethodsBuilder {
     if (module.removeAll.enabled) {
       final name = MethodNamer.getName(module.removeAll.name!, module.removeAll);
       methods.add(
-        SyntaxWriter.method(
+        SyntaxBuilder.method(
           name: name,
           returns: const Reference('Future<void>'),
           modifier: MethodModifier.async,
@@ -45,7 +45,7 @@ class ModuleMethodsBuilder {
           .where((entry) => entry.resolvedStream.enabled)
           .map((entry) => '${Names.streamControllerField(entry.name)}.close();')
           .join('\n');
-      methods.add(SyntaxWriter.method(name: Names.disposeMethod, body: Code(body)));
+      methods.add(SyntaxBuilder.method(name: Names.disposeMethod, body: Code(body)));
     }
 
     // Private module methods
@@ -56,7 +56,7 @@ class ModuleMethodsBuilder {
 
   Method _buildPrivateLoadMethod() {
     final body = LoadMethodBodyBuilder(module).build();
-    return SyntaxWriter.method(
+    return SyntaxBuilder.method(
       name: Names.privateLoadMethod,
       returns: const Reference('Future<void>'),
       modifier: MethodModifier.async,

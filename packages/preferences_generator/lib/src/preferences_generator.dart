@@ -7,7 +7,7 @@ import 'package:dart_style/dart_style.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 import 'package:preferences_generator/src/analysis/model_visitor.dart';
 import 'package:preferences_generator/src/utils/exception_handler.dart';
-import 'package:preferences_generator/src/utils/syntax_writer.dart';
+import 'package:preferences_generator/src/utils/syntax_builder.dart';
 import 'package:preferences_generator/src/writers/implementation_writer.dart';
 import 'package:preferences_generator/src/writers/keys_writer.dart';
 import 'package:preferences_generator/src/writers/mixin_writer.dart';
@@ -51,7 +51,7 @@ class PreferenceGenerator extends GeneratorForAnnotation<PrefsModule> {
       final implementationClass = ImplementationWriter(module).write();
 
       // Assemble the generated parts into a single library.
-      final library = SyntaxWriter.library(elements: [keysClass, mixin, implementationClass]);
+      final library = SyntaxBuilder.library(elements: [keysClass, mixin, implementationClass]);
 
       // Emit the library to a string.
       final emitter = DartEmitter(

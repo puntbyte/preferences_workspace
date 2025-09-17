@@ -4,7 +4,7 @@ import 'package:preferences_generator/src/models/entry.dart';
 import 'package:preferences_generator/src/models/module.dart';
 import 'package:preferences_generator/src/utils/method_namer.dart';
 import 'package:preferences_generator/src/utils/names.dart';
-import 'package:preferences_generator/src/utils/syntax_writer.dart';
+import 'package:preferences_generator/src/utils/syntax_builder.dart';
 
 /// Generates all public methods for a single preference entry (e.g., getters,
 /// setters, removers, streamers).
@@ -27,7 +27,7 @@ class EntryMethodsBuilder {
     if (!entry.resolvedAsyncGetter.enabled) return null;
     final name = MethodNamer.getName(entry.name, entry.resolvedAsyncGetter);
 
-    return SyntaxWriter.method(
+    return SyntaxBuilder.method(
       name: name,
       returns: Reference('Future<${entry.type.getDisplayString()}>'),
       modifier: MethodModifier.async,
@@ -44,10 +44,10 @@ class EntryMethodsBuilder {
       isAsync: false,
     );
 
-    return SyntaxWriter.method(
+    return SyntaxBuilder.method(
       name: name,
       returns: const Reference('void'),
-      requiredParameter: SyntaxWriter.parameter(
+      requiredParameter: SyntaxBuilder.parameter(
         name: Names.valueParameter,
         type: Reference(entry.nonNullableTypeName),
       ),
@@ -63,11 +63,11 @@ class EntryMethodsBuilder {
       isRemove: false,
       isAsync: true,
     );
-    return SyntaxWriter.method(
+    return SyntaxBuilder.method(
       name: name,
       returns: const Reference('Future<void>'),
       modifier: MethodModifier.async,
-      requiredParameter: SyntaxWriter.parameter(
+      requiredParameter: SyntaxBuilder.parameter(
         name: Names.valueParameter,
         type: Reference(entry.nonNullableTypeName),
       ),
@@ -84,7 +84,7 @@ class EntryMethodsBuilder {
       isAsync: false,
     );
 
-    return SyntaxWriter.method(
+    return SyntaxBuilder.method(
       name: name,
       returns: const Reference('void'),
       body: body,
@@ -100,7 +100,7 @@ class EntryMethodsBuilder {
       isAsync: true,
     );
 
-    return SyntaxWriter.method(
+    return SyntaxBuilder.method(
       name: name,
       returns: const Reference('Future<void>'),
       modifier: MethodModifier.async,
@@ -113,7 +113,7 @@ class EntryMethodsBuilder {
     final name = MethodNamer.getName(entry.name, entry.resolvedStream);
     final streamType = entry.type.getDisplayString();
 
-    return SyntaxWriter.method(
+    return SyntaxBuilder.method(
       name: name,
       type: MethodType.getter,
       returns: Reference('Stream<$streamType>'),
