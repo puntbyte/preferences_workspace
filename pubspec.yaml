@@ -25,3 +25,7 @@ melos:
         scope:
           - app_example
           - console_example
+    test:
+      run: dart test
+    analyze:
+      run: dart analyze

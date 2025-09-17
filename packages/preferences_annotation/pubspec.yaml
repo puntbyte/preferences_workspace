@@ -7,7 +7,6 @@ version: 2.0.0
 homepage: https://github.com/puntbyte/preferences_workspace
 repository: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_annotation
 issue_tracker: https://github.com/puntbyte/preferences_workspace/issues
-documentation: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_annotation/README.md
 topics:
   - preferences
   - code-generation
