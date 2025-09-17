@@ -1,5 +1,3 @@
-this is my old read me for preferences_generator, give me an updated and migration guide. the new is version 2.0.0, the old one is version 1.x.x
-
 # Preferences Generator
 
 [![pub version][pub_badge]][pub_link]
@@ -20,11 +18,16 @@ types.
 - 🧱 **Storage Agnostic:** The adapter interface is incredibly simple and only deals with primitive 
 types. The generator handles the rest.
 - ⚙️ **Automatic Serialization:** No more manual `jsonEncode` or type conversions in your adapter. 
-The generator automatically handles `DateTime`, `Duration`, `Enum`, `Record`, and even your custom classes.
-- 🚀 **Highly Configurable:** Use presets like `.dictionary()`, `.syncOnly()`, or `.reactive()` to match your storage backend's API, or fine-tune every method name.
-- 🌊 **Reactive Ready:** Automatically generate `Stream`s for any preference to easily build reactive UIs.
-- 🔧 **Global Configuration:** Use `build.yaml` to define project-wide conventions, like `snake_case` keys, for all your modules.
-- 🎯 **Rich Type Support:** Out-of-the-box support for `int`, `String`, `double`, `bool`, `List`, `Set`, `Map`, `Enum`, `DateTime`, `Duration`, and `Record`.
+The generator automatically handles `DateTime`, `Duration`, `Enum`, `Record`, and even your custom 
+classes.
+- 🚀 **Highly Configurable:** Use presets like `.dictionary()`, `.syncOnly()`, or `.reactive()` to 
+match your storage backend's API, or fine-tune every method name.
+- 🌊 **Reactive Ready:** Automatically generate `Stream`s for any preference to easily build 
+reactive UIs.
+- 🔧 **Global Configuration:** Use `build.yaml` to define project-wide conventions, like 
+`snake_case` keys, for all your modules.
+- 🎯 **Rich Type Support:** Out-of-the-box support for `int`, `String`, `double`, `bool`, `List`, 
+`Set`, `Map`, `Enum`, `DateTime`, `Duration`, and `Record`.
 
 ## Getting Started
 
@@ -46,7 +49,8 @@ dev_dependencies:
 
 ### 2. Define Your Preference Schema
 
-Create an abstract class that defines your preferences. The schema is defined in a private, generative constructor.
+Create an abstract class that defines your preferences. The schema is defined in a private, 
+generative constructor.
 
 **`lib/settings.dart`**
 ```dart
@@ -84,7 +88,8 @@ abstract class AppSettings with _$AppSettings {
 
 ### 2. Define Your Preference Schema
 
-Create an abstract class that defines your preferences. The schema is defined in a private, generative constructor.
+Create an abstract class that defines your preferences. The schema is defined in a private, 
+generative constructor.
 
 **`lib/settings.dart`**
 ```dart
