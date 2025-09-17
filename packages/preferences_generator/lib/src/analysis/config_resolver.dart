@@ -1,4 +1,3 @@
-import 'package:preferences_annotation/preferences_annotation.dart';
 import 'package:preferences_generator/src/models/method_config.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 import 'package:source_gen/source_gen.dart';
