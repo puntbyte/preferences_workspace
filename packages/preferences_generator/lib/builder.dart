@@ -4,7 +4,7 @@ import 'package:source_gen/source_gen.dart';
 
 /// The builder factory that creates an instance of the preference generator.
 Builder preferencesBuilder(BuilderOptions options) {
-  final customExtension = options.config['build_extensions'] as String? ?? '.g.dart';
+  final customExtension = options.config['build_extensions'] as String? ?? '.prefs.dart';
 
   return PartBuilder(
     [PreferenceGenerator(options)],

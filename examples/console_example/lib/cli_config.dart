@@ -4,7 +4,7 @@ import 'package:console_example/converters/uri_converter.dart';
 import 'package:console_example/models/user.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 
-part 'cli_config.g.dart';
+part 'cli_config.prefs.dart';
 
 enum LogLevel { none, error, info, verbose }
 

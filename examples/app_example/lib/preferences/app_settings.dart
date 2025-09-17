@@ -5,7 +5,7 @@ import 'package:app_example/preferences/converters/user_profile_converter.dart';
 import 'package:flutter/material.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 
-part 'app_settings.g.dart';
+part 'app_settings.prefs.dart';
 
 enum AppLanguage { english, spanish, french }
 

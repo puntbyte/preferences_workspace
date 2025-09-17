@@ -1,14 +1,33 @@
+# This file configures the build_runner to use the PreferenceGenerator.
+# The `targets` section is used by consumers of this builder.
 targets:
   $default:
     builders:
       preferences_generator|preferencesBuilder:
         enabled: true
+        options:
+          key_case: snake
+          build_extensions: .prefs.dart
 
 builders:
+  # This is the name of the builder that users will configure.
   preferences:
-    import: "package:preferences_generator/preferences_generator.dart"
+    # Points to the library that contains the `preferencesBuilder` factory.
+    import: "package:preferences_generator/builder.dart"
+
+    # The name of the top-level function in the imported library that creates the builder.
     builder_factories: ["preferencesBuilder"]
-    build_extensions: {".dart": [".g.dart"]}
+
+    # Specifies the default file extension for the generated part files.
+    build_extensions: {".dart": [".prefs.dart"]}
+
+    # Automatically apply this builder to packages that depend on this one.
     auto_apply: dependents
-    build_to: cache
-    applies_builders: ["source_gen|part_cleanup"]
+
+    # This ensures generated part files are handled correctly by the build system and written
+    # directly into the source directory.
+    build_to: source
+
+    # Automatically cleans up old, orphaned .prefs.dart files when user rename or delete a source
+    # file. This is essential for a good developer experience.
+    applies_builders: [ "source_gen|part_cleanup" ]
