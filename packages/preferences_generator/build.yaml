@@ -6,7 +6,7 @@ targets:
 
 builders:
   preferences:
-    import: "package:preferences_generator/preferences_generator_builder.dart"
+    import: "package:preferences_generator/preferences_generator.dart"
     builder_factories: ["preferencesBuilder"]
     build_extensions: {".dart": [".g.dart"]}
     auto_apply: dependents
