@@ -30,7 +30,6 @@ class PrefsModule {
   static const AffixConfig _affixRemove = AffixConfig(prefix: 'remove');
   static const AffixConfig _affixPut = AffixConfig(prefix: 'put');
 
-  static const AffixConfig _asyncSuffix = AffixConfig(suffix: 'Async');
   static const AffixConfig _asyncGetSuffix = AffixConfig(suffix: 'Async');
   static const AffixConfig _asyncSetPrefixSuffix = AffixConfig(prefix: 'set', suffix: 'Async');
   static const AffixConfig _asyncRemovePrefixSuffix = AffixConfig(

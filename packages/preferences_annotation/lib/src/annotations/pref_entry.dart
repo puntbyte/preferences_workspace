@@ -17,7 +17,7 @@ class PrefEntry<TypeEntry, TypeStorage> {
 
   final CustomConfig? streamer;
 
-  final PrefConverter? converter;
+  final PrefConverter<dynamic, dynamic>? converter;
   final TypeStorage Function(TypeEntry value)? toStorage;
   final TypeEntry Function(TypeStorage value)? fromStorage;
 
