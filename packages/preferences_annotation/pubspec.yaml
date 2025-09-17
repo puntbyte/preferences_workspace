@@ -1,18 +1,26 @@
 name: preferences_annotation
-description: Defines annotations and interfaces for `preferences_generator`, enabling type-safe, 
-  boilerplate-free preference management.
-version: 1.0.2
+description: >- 
+  Annotations and interfaces for generating type-safe, boilerplate-free 
+  preference management classes.
+version: 2.0.0
+
+homepage: https://github.com/puntbyte/preferences_workspace
 repository: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_annotation
 issue_tracker: https://github.com/puntbyte/preferences_workspace/issues
+documentation: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_annotation/README.md
+topics:
+  - preferences
+  - code-generation
+  - annotations
+  - configuration
 
 environment:
-  sdk: ^3.8.1
+  sdk: ^3.9.0
 
 resolution: workspace
 
 dependencies:
-  meta: ^1.0.0
+  meta: ^1.16.0
 
 dev_dependencies:
-  lints: ^6.0.0
-  #test: ^1.24.0
+  test: ^1.26.0

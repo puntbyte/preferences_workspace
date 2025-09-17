@@ -1,13 +1,13 @@
 targets:
   $default:
     builders:
-      preferences_generator|preferences:
+      preferences_generator|preferencesBuilder:
         enabled: true
 
 builders:
   preferences:
-    import: "package:preferences_generator/preferences_generator.dart"
+    import: "package:preferences_generator/builder.dart"
     builder_factories: ["preferencesBuilder"]
-    build_extensions: {".dart": [".g.dart"]}
+    build_extensions: {".dart": [".pref.dart"]}
     auto_apply: dependents
     build_to: source

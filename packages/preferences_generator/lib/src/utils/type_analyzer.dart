@@ -1,24 +1,21 @@
 import 'package:analyzer/dart/element/type.dart';
-import 'package:preferences_annotation/preferences_annotation.dart';
-import 'package:preferences_generator/src/utils/extensions/dart_type_extensions.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:preferences_generator/src/extensions/dart_type_extensions.dart';
 
-/// A static utility class that analyzes Dart types to support preference generation.
+/// A static utility class that analyzes Dart types to support preference
+/// generation.
 class TypeAnalyzer {
   const TypeAnalyzer._();
 
-  /// Checks if a [DartType] is one of the explicitly supported preference types.
+  /// Checks if a [DartType] is one of the explicitly supported preference
+  /// types.
   static bool isSupported(DartType type) {
     if (type.isRecord) {
-      // Recursively check that all fields within the record are also supported.
-      final supported = (type as RecordType).positionalFields.every((field) {
-        return isSupported(field.type);
-      });
+      final record = type as RecordType;
 
-      final supportedNamed = type.namedFields.every((field) {
-        return isSupported(field.type);
-      });
-
-      return supported && supportedNamed;
+      return record.positionalFields.every((field) => isSupported(field.type)) &&
+          record.namedFields.every((field) => isSupported(field.type));
     }
 
     return type.isDartCoreInt ||
@@ -31,122 +28,116 @@ class TypeAnalyzer {
         type.isEnum ||
         type.isDateTime ||
         type.isDuration;
-    //type.isColor;
   }
 
-  /// Gets the type that the generator will ask the [PreferenceAdapter] to handle.
-  static String getStorageType(DartType type) {
-    if (type.isEnum) return 'String?';
-    if (type.isRecord) return 'Map<String, dynamic>?';
-    if (type.isDuration) return 'int?';
-    return type.getDisplayString(withNullability: true);
+  /// Determines the underlying type that will be used in the storage adapter.
+  static DartType getStorageType(DartType type, TypeProvider typeProvider) {
+    if (type.isDateTime) return typeProvider.stringType;
+    if (type.isDuration) return typeProvider.intType;
+    if (type.isEnum) return typeProvider.stringType;
+    if (type.isRecord) {
+      return typeProvider.mapType(typeProvider.stringType, typeProvider.dynamicType);
+    }
+
+    return type;
   }
 
   /// Generates a code expression to serialize a value before passing it to storage.
   static String buildSerializationExpression(String value, DartType type) {
-    if (type.isEnum) return '$value${type.isNullable ? '?' : ''}.name';
+    if (type.isDuration) return '$value.inMicroseconds';
+    if (type.isDateTime) return '$value.toIso8601String()';
+    if (type.isEnum) return '$value.name';
     if (type.isRecord) return _recordToMapExpression(type as RecordType, value);
-    if (type.isDuration) return '$value${type.isNullable ? '?' : ''}.inMicroseconds';
+
     return value;
   }
 
-  /// Generates a code expression to deserialize a value after getting it from storage.
-  static String buildDeserializationExpression(String rawValue, DartType type) {
-    final typeName = type.getDisplayString(withNullability: false);
-    if (type.isEnum) {
-      return '$typeName.values.asNameMap()[$rawValue]';
-    }
+  /// Generates a code expression to deserialize a value after getting it from
+  /// storage.
+  static String buildDeserializationExpression(
+    String rawValue,
+    DartType type,
+    TypeSystem typeSystem,
+  ) {
+    final nonNullableType = typeSystem.promoteToNonNull(type);
+    final nonNullableTypeName = nonNullableType.getDisplayString();
 
-    if (type.isRecord) {
-      return '$rawValue == null ? null : ${_mapToRecordExpression(type as RecordType, rawValue)}';
-    }
-
-    if (type.isDuration) {
-      return '$rawValue == null ? null : Duration(microseconds: $rawValue)';
+    if (nonNullableType.isDateTime) return 'DateTime.parse($rawValue)';
+    if (nonNullableType.isDuration) return 'Duration(microseconds: $rawValue)';
+    if (nonNullableType.isEnum) return '$nonNullableTypeName.values.byName($rawValue)';
+    if (nonNullableType.isRecord) {
+      return _mapToRecordExpression(type as RecordType, rawValue, typeSystem);
     }
 
     return rawValue;
   }
 
   // --- Private Static Helpers ---
-
   static String _recordToMapExpression(RecordType type, String access) {
     final entries = <String>[];
 
-    for (int index = 1; index <= type.positionalFields.length; index++) {
-      entries.add("'f$index': $access.\$$index");
+    for (var index = 0; index < type.positionalFields.length; index++) {
+      entries.add("'f$index': $access.\$${index + 1}");
     }
 
-    // Handle named fields
     for (final field in type.namedFields) {
-      // Use the field's name as the key.
       entries.add("'${field.name}': $access.${field.name}");
     }
 
     return '{${entries.join(', ')}}';
   }
 
-  /// Generates the code expression to deserialize a Map back into a Record.
-  static String _mapToRecordExpression(RecordType type, String access) {
-    // Positional arguments
+  static String _mapToRecordExpression(RecordType type, String mapAccess, TypeSystem typeSystem) {
     final positionalArgs = <String>[];
-    int positionalIndex = 1;
-    for (final field in type.positionalFields) {
-      final fieldKey = 'f$positionalIndex';
-      // Use the new safe cast helper
-      positionalArgs.add(
-        _getSafeCastExpression("$access['$fieldKey']", field.type),
-      );
-      positionalIndex++;
+
+    for (var i = 0; i < type.positionalFields.length; i++) {
+      final field = type.positionalFields[i];
+      final fieldAccess = "$mapAccess['f$i']";
+      positionalArgs.add(_buildFieldDeserialization(fieldAccess, field.type, typeSystem));
     }
+
     final positionalPart = positionalArgs.join(', ');
 
-    // Named arguments
     final namedArgs = <String>[];
     for (final field in type.namedFields) {
-      final fieldKey = field.name;
-      // Use the new safe cast helper
-      namedArgs.add(
-        "${field.name}: ${_getSafeCastExpression("$access['$fieldKey']", field.type)}",
-      );
+      final fieldAccess = "$mapAccess['${field.name}']";
+      final deserializedField = _buildFieldDeserialization(fieldAccess, field.type, typeSystem);
+      namedArgs.add('${field.name}: $deserializedField');
     }
     final namedPart = namedArgs.join(', ');
 
-    // Combine them correctly
-    if (namedArgs.isEmpty) {
-      return '($positionalPart,)';
-    } else {
-      if (positionalArgs.isEmpty) {
-        return '($namedPart)';
-      } else {
-        return '($positionalPart, {$namedPart})';
-      }
-    }
+    if (namedArgs.isEmpty) return '($positionalPart,)';
+    if (positionalArgs.isEmpty) return '($namedPart)';
+
+    return '($positionalPart, $namedPart)';
   }
 
-  // --- THIS IS THE NEW, ROBUST HELPER FUNCTION ---
-  /// Generates a safe casting expression for a value from a map.
-  ///
-  /// For a nullable field like `int?`, it generates `map['key'] as int?`.
-  /// For a non-nullable field like `int`, it generates `(map['key'] as int?) ?? 0`,
-  /// providing a safe fallback to prevent runtime errors.
-  static String _getSafeCastExpression(String mapAccess, DartType fieldType) {
-    final typeName = fieldType.getDisplayString(withNullability: false);
+  /// A powerful helper that generates a type-safe deserialization expression for a given field
+  /// type. It handles casting, defaults for non-nullable primitives, and recursion for nested
+  /// records.
+  static String _buildFieldDeserialization(String access, DartType type, TypeSystem typeSystem) {
+    // Recursive step for nested records.
+    if (type.isRecord) return _mapToRecordExpression(type as RecordType, access, typeSystem);
 
-    // If the record's field is itself nullable, a simple nullable cast is safe.
-    if (fieldType.isNullable) return "$mapAccess as $typeName?";
+    final nonNullableTypeName = typeSystem.promoteToNonNull(type).getDisplayString();
 
-    // If the record's field is NOT nullable, we must provide a default.
-    if (fieldType.isDartCoreInt) return "($mapAccess as int?) ?? 0";
-    if (fieldType.isDartCoreDouble) return "($mapAccess as double?) ?? 0.0";
-    if (fieldType.isDartCoreBool) return "($mapAccess as bool?) ?? false";
-    if (fieldType.isDartCoreString) return "($mapAccess as String?) ?? ''";
-    if (fieldType.isDartCoreList) return "($mapAccess as List?) ?? const []";
-    if (fieldType.isDartCoreMap) return "($mapAccess as Map?) ?? const {}";
+    // If the record's field is nullable, a simple cast is sufficient and safe.
+    if (type.isNullable) return '$access as $nonNullableTypeName?';
 
-    // For other complex non-nullable types like Enums or nested Records,
-    // a hard cast is the only option, as we can't invent a default.
-    // This assumes the data is well-formed.
-    return "$mapAccess as $typeName";
+    // --- For Non-Nullable fields, we must provide a safe fallback ---
+    if (type.isDartCoreInt) return '($access as int?) ?? 0';
+    if (type.isDartCoreDouble) return '($access as double?) ?? 0.0';
+    if (type.isDartCoreBool) return '($access as bool?) ?? false';
+    if (type.isDartCoreString) return "($access as String?) ?? ''";
+    if (type.isDartCoreList) return '($access as List?) ?? const []';
+    if (type.isDartCoreSet) return '($access as Set?) ?? const {}';
+    if (type.isDartCoreMap) return '($access as Map?) ?? const {}';
+    if (type.isEnum) return '$nonNullableTypeName.values.byName($access as String)';
+    if (type.isDateTime) return 'DateTime.parse($access as String)';
+    if (type.isDuration) return 'Duration(microseconds: $access as int)';
+
+    // Fallback for other complex, non-nullable types where we can't invent a
+    // default. This assumes data integrity from the storage.
+    return '$access as $nonNullableTypeName';
   }
 }
