@@ -13,7 +13,7 @@ builders:
   # This is the name of the builder that users will configure.
   preferences:
     # Points to the library that contains the `preferencesBuilder` factory.
-    import: "package:preferences_generator/builder.dart"
+    import: "package:preferences_generator/preferences_generator.dart"
 
     # The name of the top-level function in the imported library that creates the builder.
     builder_factories: ["preferencesBuilder"]
