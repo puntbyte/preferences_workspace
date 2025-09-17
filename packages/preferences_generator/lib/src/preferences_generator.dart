@@ -65,14 +65,11 @@ class PreferenceGenerator extends GeneratorForAnnotation<PrefsModule> {
         languageVersion: DartFormatter.latestLanguageVersion,
       ).format(library.accept(emitter).toString());
     } catch (error, stackTrace) {
-      // Catch any unexpected errors during generation and wrap them in a standardized,
-      // user-friendly error message.
-      throw ExceptionHandler.unexpectedError(element, error, stackTrace);
-      /*if (error is InvalidGenerationSourceError) {
+      if (error is InvalidGenerationSourceError) {
         rethrow;
       } else {
         throw ExceptionHandler.unexpectedError(element, error, stackTrace);
-      }*/
+      }
     }
   }
 }
