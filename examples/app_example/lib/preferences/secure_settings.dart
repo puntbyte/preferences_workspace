@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 
-part 'secure_settings.prefs.dart';
+part '../generated/preferences/secure_settings.prefs.dart';
 
 class ApiSession {
   final String token;

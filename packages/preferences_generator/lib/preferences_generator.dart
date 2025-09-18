@@ -4,11 +4,11 @@ import 'package:source_gen/source_gen.dart';
 
 /// The builder factory that creates an instance of the preference generator.
 Builder preferences(BuilderOptions options) {
-  final customExtension = options.config['build_extensions'] as String? ?? '.prefs.dart';
+  const defaultBuildExtensions = '.prefs.dart';
 
   return PartBuilder(
     [PreferenceGenerator(options)],
-    customExtension,
+    defaultBuildExtensions,
     header: [
       '// GENERATED CODE - DO NOT MODIFY BY HAND\n',
       '// ignore_for_file: type=lint, prefer_const_constructors',

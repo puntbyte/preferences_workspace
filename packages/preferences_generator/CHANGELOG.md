@@ -1,3 +1,11 @@
+[2.0.3]
+
+### 🐛 Bug Fixes
+
+- **Fixed:** Resolved a critical crash that occurred when a user customized `build_extensions` in 
+their `build.yaml`. The generator no longer manually parses this option and now correctly defers to
+`build_runner`'s standard mechanism.
+
 [2.0.2]
 
 ### 🔧 Improvements & Maintenance

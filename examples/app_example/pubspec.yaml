@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
 
   flutter_secure_storage: ^9.2.4
-  preferences_annotation: ^2.0.0
+  preferences_annotation: ^2.0.1
   shared_preferences: ^2.5.3
 
 dev_dependencies:
@@ -22,7 +22,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  preferences_generator: ^2.0.0
+  preferences_generator: ^2.0.3
 
 flutter:
   uses-material-design: true

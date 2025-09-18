@@ -1,0 +1,10 @@
+# This file configures the build_runner to use the PreferenceGenerator.
+# The `targets` section is used by consumers of this builder.
+targets:
+  $default:
+    builders:
+      preferences_generator|preferences:
+        options:
+          build_extensions:
+            'lib/{{path}}/{{file}}.dart':
+              'lib/generated/{{path}}//{{file}}.prefs.dart'

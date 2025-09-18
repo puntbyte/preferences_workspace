@@ -16,7 +16,3 @@ builders:
     # This ensures generated part files are handled correctly by the build system and written
     # directly into the source directory.
     build_to: source
-
-    # Automatically cleans up old, orphaned .prefs.dart files when user rename or delete a source
-    # file. This is essential for a good developer experience.
-    applies_builders: [ "source_gen|part_cleanup" ]
