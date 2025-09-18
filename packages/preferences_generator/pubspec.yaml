@@ -2,7 +2,7 @@ name: preferences_generator
 description: >-
   A powerful code generator that creates type-safe, boilerplate-free preference modules from simple
   abstract classes, used with `preferences_annotation`.
-version: 2.0.1
+version: 2.0.2
 
 homepage: https://github.com/puntbyte/preferences_workspace
 repository: https://github.com/puntbyte/preferences_workspace/tree/master/packages/preferences_generator

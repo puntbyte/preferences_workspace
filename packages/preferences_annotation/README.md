@@ -1,4 +1,4 @@
-# preferences_annotation
+# Preferences Annotation
 
 [![pub version][pub_badge]][pub_link]
 

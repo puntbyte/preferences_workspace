@@ -1,10 +1,25 @@
+[2.0.2]
+
+### 🔧 Improvements & Maintenance
+
+- **Improved:** Simplified the builder configuration for end-users. The builder is now consistently 
+named `preferences_generator` (matching the package name), which allows for a more conventional 
+`build.yaml` setup.
+- **Refactored:** The internal builder factory function has been renamed from `preferencesBuilder` 
+to `preferences` for better consistency and brevity.
+
+### 📚 Documentation
+- **Docs:** Updated the `README.md` and migration guide to reflect the new, simpler `build.yaml` 
+configuration.
+
 [2.0.1]
 
 ### 📚 Documentation
 
-- **Improved:** Overhauled the `README.md` with a new, comprehensive "Configuration in Depth" section. 
-The update adds detailed documentation and examples for all advanced features, including module 
-presets, method configuration, key casing, reactive streams, and `ChangeNotifier` integration.
+- **Improved:** Overhauled the `README.md` with a new, comprehensive "Configuration in Depth" 
+section. The update adds detailed documentation and examples for all advanced features, including 
+module presets, method configuration, key casing, reactive streams, and `ChangeNotifier` 
+integration.
 - **Improved:** Refined presentation and clarity of the main README with tables and blockquotes for 
 better scannability.
 

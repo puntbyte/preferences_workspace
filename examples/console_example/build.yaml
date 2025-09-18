@@ -1,0 +1,15 @@
+# This file configures the build_runner to use the PreferenceGenerator.
+# The `targets` section is used by consumers of this builder.
+targets:
+  $default:
+    builders:
+      preferences_generator|preferences:
+        enabled: true
+        options:
+          # This sets the project-wide default key case.
+          # The generator will convert `mySetting` to `my_setting`.
+          key_case: snake
+
+          # Optional: You can override the default .prefs.dart extension here.
+          # For example, to go back to .g.dart:
+          # build_extensions: .g.dart

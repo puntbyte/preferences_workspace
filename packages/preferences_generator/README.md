@@ -158,7 +158,7 @@ Define a consistent naming convention for your storage keys. The precedence is:
 > targets:
 >   $default:
 >     builders:
->       preferences_generator:preferences:
+>       preferences_generator|preferences:
 >         options:
 >           key_case: snake # All keys will be snake_case
 > ```
