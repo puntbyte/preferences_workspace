@@ -1,3 +1,11 @@
+## [2.0.1]
+
+### 📚 Documentation
+
+- **Improved:** Updated the `README.md` to clearly list and describe all new API components 
+introduced in the v2.0.0 release, including `PrefConverter`, `KeyCase`, and the configuration 
+classes.
+
 ## [2.0.0]
 
 ### 🚀 Features

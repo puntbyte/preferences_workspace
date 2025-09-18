@@ -1,3 +1,13 @@
+[2.0.1]
+
+### 📚 Documentation
+
+- **Improved:** Overhauled the `README.md` with a new, comprehensive "Configuration in Depth" section. 
+The update adds detailed documentation and examples for all advanced features, including module 
+presets, method configuration, key casing, reactive streams, and `ChangeNotifier` integration.
+- **Improved:** Refined presentation and clarity of the main README with tables and blockquotes for 
+better scannability.
+
 ## [2.0.0]
 
 This is a major architectural overhaul of the Preferences Suite, introducing a more powerful, 
@@ -31,6 +41,8 @@ including enabling/disabling individual methods.
 
 - **Refactored:** The schema definition has moved from a `factory` constructor to a 
 **private generative constructor**. The old factory-based schema is no longer supported.
+- **Changed:** The default generated file extension has changed from `.g.dart` to 
+**`.prefs.dart`**. All `part` directives must be updated.
 - **Renamed:** The `PreferenceAdapter` interface has been renamed to **`PrefsAdapter`**.
 - **Simplified:** The contract for `PrefsAdapter` has been radically simplified. It is now only 
 required to handle primitives (`String`, `int`, `double`, `bool`, `List<String>`). All manual 
