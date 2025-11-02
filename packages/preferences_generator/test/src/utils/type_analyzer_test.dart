@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -9,14 +9,14 @@ import 'package:test/test.dart';
 void main() {
   group('TypeAnalyzer', () {
     // These late variables will be initialized once for all tests.
-    late LibraryElement2 library;
+    late LibraryElement library;
     late TypeSystem typeSystem;
     late TypeProvider typeProvider;
 
     // A helper to get a specific DartType from our test source code.
     DartType getType(String fieldName) {
       final typeContainer = library.classes.firstWhere((class$) => class$.displayName == '_Types');
-      return typeContainer.getField2(fieldName)!.type;
+      return typeContainer.getField(fieldName)!.type;
     }
 
     setUpAll(() async {

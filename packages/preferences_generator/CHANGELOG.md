@@ -1,3 +1,9 @@
+## [2.0.6]
+
+### ⬆️ Dependency Updates
+
+- **Updated:** Bumped the `build` dependency to version `4.0.0`.
+
 ## [2.0.5]
 
 ### ⬆️ Dependency Updates

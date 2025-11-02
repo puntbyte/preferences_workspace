@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:build_test/build_test.dart';
@@ -18,7 +18,7 @@ void main() {
     registerFallbackValue(FakeDartType());
   });
 
-  late LibraryElement2 library;
+  late LibraryElement library;
   // ✨ FIX: Removed the unused `realStringType` variable.
   late DartType realEnumType;
 
@@ -37,7 +37,7 @@ void main() {
 
     final typeContainer = library.classes.first;
     // ✨ FIX: Removed the assignment to the unused variable.
-    realEnumType = typeContainer.getField2('enumField')!.type;
+    realEnumType = typeContainer.getField('enumField')!.type;
   });
 
   group('Entry', () {
