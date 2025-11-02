@@ -17,7 +17,7 @@ void main() {
         (resolver) => resolver.findLibraryByName('test'),
       );
 
-      final param = library!.classes.first.constructors2.first.formalParameters.first;
+      final param = library!.classes.first.constructors.first.formalParameters.first;
 
       const parser = DefaultValueParser();
       final result = parser.parse(
@@ -39,7 +39,7 @@ void main() {
         (resolver) => resolver.findLibraryByName('test'),
       );
 
-      final param = library!.classes.first.constructors2.first.formalParameters.first;
+      final param = library!.classes.first.constructors.first.formalParameters.first;
 
       const parser = DefaultValueParser();
       final result = parser.parse(
@@ -70,8 +70,8 @@ void main() {
       );
 
       final element = library!.classes.first;
-      final param = element.constructors2.first.formalParameters.first;
-      final annotation = const TypeChecker.fromRuntime(PrefEntry).firstAnnotationOfExact(param)!;
+      final param = element.constructors.first.formalParameters.first;
+      final annotation = const TypeChecker.typeNamed(PrefEntry).firstAnnotationOfExact(param)!;
 
       const parser = DefaultValueParser();
 

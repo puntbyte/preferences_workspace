@@ -1,8 +1,14 @@
+## [2.0.5]
+
+### ⬆️ Dependency Updates
+
+- **Updated:** Bumped the `source_gen` dependency to version `4.0.0`.
+
 ## [2.0.4]
 
-### 🔧 Improvements & Maintenance
+### ⬆️ Dependency Updates
 
-- **Updated:** Bumped the `analyzer` dependency to `8.0.0`.
+- **Updated:** Bumped the `analyzer` dependency to version `8.0.0`.
 
 ## [2.0.3]
 

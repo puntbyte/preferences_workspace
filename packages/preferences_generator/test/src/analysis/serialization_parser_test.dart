@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:build_test/build_test.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
@@ -10,18 +9,18 @@ import 'package:test/test.dart';
 // A record to hold the necessary context for parsing a single parameter.
 typedef _ParameterContext = ({FormalParameterElement parameter, ConstantReader annotationReader});
 
-(TopLevelVariableElement2 variable, ConstantReader reader) _getTopLevelContext(
-  LibraryElement2 library,
+(TopLevelVariableElement variable, ConstantReader reader) _getTopLevelContext(
+  LibraryElement library,
   String name,
 ) {
   final variable = library.getTopLevelVariable(name)!;
-  final annotation = const TypeChecker.fromRuntime(PrefEntry).firstAnnotationOfExact(variable);
+  final annotation = const TypeChecker.typeNamed(PrefEntry).firstAnnotationOfExact(variable);
   return (variable, ConstantReader(annotation));
 }
 
 void main() {
   group('SerializationParser', () {
-    late LibraryElement2 library;
+    late LibraryElement library;
     late TypeProvider typeProvider;
     late SerializationParser parser;
 
@@ -29,10 +28,10 @@ void main() {
     _ParameterContext getContext(String parameterName) {
       final constructor = library.classes
           .firstWhere((constructor) => constructor.displayName == '_TestConfig')
-          .constructors2
+          .constructors
           .first;
-      final parameter = constructor.formalParameters.firstWhere((p) => p.name3 == parameterName);
-      final annotation = const TypeChecker.fromRuntime(PrefEntry).firstAnnotationOfExact(parameter);
+      final parameter = constructor.formalParameters.firstWhere((p) => p.name == parameterName);
+      final annotation = const TypeChecker.typeNamed(PrefEntry).firstAnnotationOfExact(parameter);
 
       return (
         parameter: parameter,
