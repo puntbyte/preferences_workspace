@@ -1,4 +1,10 @@
-[2.0.3]
+## [2.0.4]
+
+### 🔧 Improvements & Maintenance
+
+- **Updated:** Bumped the `analyzer` dependency to `8.0.0`.
+
+## [2.0.3]
 
 ### 🐛 Bug Fixes
 
@@ -6,7 +12,7 @@
 their `build.yaml`. The generator no longer manually parses this option and now correctly defers to
 `build_runner`'s standard mechanism.
 
-[2.0.2]
+## [2.0.2]
 
 ### 🔧 Improvements & Maintenance
 
@@ -20,7 +26,7 @@ to `preferences` for better consistency and brevity.
 - **Docs:** Updated the `README.md` and migration guide to reflect the new, simpler `build.yaml` 
 configuration.
 
-[2.0.1]
+## [2.0.1]
 
 ### 📚 Documentation
 
