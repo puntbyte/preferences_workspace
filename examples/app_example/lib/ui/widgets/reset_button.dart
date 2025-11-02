@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class ResetButton extends StatelessWidget {
   final VoidCallback onPressed;
-  const ResetButton({super.key, required this.onPressed});
+  const ResetButton({required this.onPressed, super.key});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(24),
       child: FilledButton.tonal(
         onPressed: onPressed,
         style: FilledButton.styleFrom(

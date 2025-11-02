@@ -16,7 +16,7 @@ typedef SerializationDetails = ({
 
 /// A specialized class to determine the serialization strategy and final storage type for an entry.
 class SerializationParser {
-  static const _converterChecker = TypeChecker.fromRuntime(PrefConverter);
+  static const _converterChecker = TypeChecker.typeNamed(PrefConverter);
 
   const SerializationParser();
 
@@ -64,7 +64,7 @@ class SerializationParser {
 
     // ✨ FIX 1: Use the correct `element3` API.
     final supertype = converterType.allSupertypes.firstWhere(
-      (type) => _converterChecker.isExactly(type.element3),
+      (type) => _converterChecker.isExactly(type.element),
       orElse: () => throw StateError(
         'Could not find PrefConverter supertype for ${converterType.getDisplayString()}.',
       ),

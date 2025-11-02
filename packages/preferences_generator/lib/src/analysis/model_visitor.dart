@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:build/build.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
@@ -17,12 +17,12 @@ class ModelVisitor extends SimpleElementVisitor2<void> {
 
   ModelVisitor(this.buildOptions);
 
-  static const _moduleChecker = TypeChecker.fromRuntime(PrefsModule);
+  static const _moduleChecker = TypeChecker.typeNamed(PrefsModule);
   static const _validator = ModuleValidator();
   static const _configParser = ModuleConfigParser();
 
   @override
-  void visitClassElement(ClassElement2 element) {
+  void visitClassElement(ClassElement element) {
     final moduleAnnotation = _moduleChecker.firstAnnotationOf(element);
     if (moduleAnnotation == null) return;
 
@@ -34,7 +34,7 @@ class ModelVisitor extends SimpleElementVisitor2<void> {
     // 2. Parse module-level configurations.
     final configs = _configParser.parse(ConstantReader(moduleAnnotation));
     final usesChangeNotifier = element.allSupertypes.any(
-      (supertype) => supertype.element3.name3 == 'ChangeNotifier',
+      (supertype) => supertype.element.name == 'ChangeNotifier',
     );
 
     // 3. Prepare and run the entry parser.

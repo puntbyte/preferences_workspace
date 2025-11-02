@@ -19,20 +19,7 @@ class ApiSession {
 abstract class SecureSettings with _$SecureSettings, ChangeNotifier {
   factory SecureSettings(PrefsAdapter adapter) = _SecureSettings;
 
-  SecureSettings._({
-    // A nullable String for sensitive data.
-    @PrefEntry(
-      streamer: CustomConfig(enabled: true, prefix: 'watch', suffix: 'Stream'),
-    )
-    String? authToken,
-
-    // A custom object using to/fromStorage functions for JSON serialization.
-    @PrefEntry(toStorage: _sessionToStorage, fromStorage: _sessionFromStorage)
-    ApiSession? apiSession,
-
-    // A boolean flag with streaming enabled.
-    @PrefEntry(streamer: CustomConfig(enabled: true)) bool areBiometricsEnabled = false,
-  });
+  SecureSettings._();
 
   static Map<String, dynamic> _sessionToStorage(ApiSession session) => session.toJson();
   static ApiSession _sessionFromStorage(Map<String, dynamic> map) => ApiSession.fromJson(map);

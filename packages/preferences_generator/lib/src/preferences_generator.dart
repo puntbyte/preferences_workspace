@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
@@ -27,19 +27,19 @@ class PreferenceGenerator extends GeneratorForAnnotation<PrefsModule> {
 
   @override
   FutureOr<String> generateForAnnotatedElement(
-    Element2 element,
+    Element element,
     ConstantReader annotation,
     BuildStep buildStep,
   ) async {
     try {
-      if (element is! ClassElement2) throw ExceptionHandler.notAClass(element);
+      if (element is! ClassElement) throw ExceptionHandler.notAClass(element);
 
       // Instantiate the visitor, passing in the build options so it can read project-wide
       // configurations from `build.yaml`.
       final visitor = ModelVisitor(options);
 
       // Run the analysis phase by having the visitor traverse the element.
-      element.accept2(visitor);
+      element.accept(visitor);
 
       // Retrieve the fully analyzed and validated data model.
       final module = visitor.module;

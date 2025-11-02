@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 import 'package:source_gen/source_gen.dart';
@@ -22,8 +22,8 @@ sealed class MethodConfig {
 /// Represents a method's configuration as it is parsed directly from an annotation. All properties
 /// are nullable because they may not be specified by the user.
 class UnresolvedMethodConfig extends MethodConfig {
-  static const _affixChecker = TypeChecker.fromRuntime(AffixConfig);
-  static const _namedChecker = TypeChecker.fromRuntime(NamedConfig);
+  static const _affixChecker = TypeChecker.typeNamed(AffixConfig);
+  static const _namedChecker = TypeChecker.typeNamed(NamedConfig);
 
   const UnresolvedMethodConfig({
     super.enabled,
@@ -51,9 +51,9 @@ class UnresolvedMethodConfig extends MethodConfig {
       enabledValue = enabledReader.boolValue;
     }
 
-    final element = object.type?.element3;
-    if (element is! InterfaceElement2) return UnresolvedMethodConfig(enabled: enabledValue);
-    final availableFields = element.fields2.map((field) => field.name3).whereType<String>().toSet();
+    final element = object.type?.element;
+    if (element is! InterfaceElement) return UnresolvedMethodConfig(enabled: enabledValue);
+    final availableFields = element.fields.map((field) => field.name).whereType<String>().toSet();
 
     T? read<T>(String fieldName, T Function(ConstantReader reader) getValue) {
       if (availableFields.contains(fieldName)) {

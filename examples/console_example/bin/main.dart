@@ -41,7 +41,7 @@ Future<void> main() async {
   // 4. Testing Custom Serialization
   print('\n--- 3. Testing Custom Serialization ---');
   final devApi = Uri.parse('https://api.dev.example.com');
-  final testUser = const User(id: 42, name: 'Test', email: 'test@example.com');
+  const testUser = User(id: 42, name: 'Test', email: 'test@example.com');
   await config.setApiEndpointAsync(devApi);
   config.setCurrentUserSync(testUser);
 
@@ -55,7 +55,7 @@ Future<void> main() async {
   print('Splash Screen Before: ${config.getShowSplashScreenSync}');
   config.toggleSplashScreen(false); // Using custom name
   print('Splash Screen After: ${config.getShowSplashScreenSync}');
-  await config.resetSplashScreen; // Using custom remover name
+  config.resetSplashScreen; // Using custom remover name
   print('Splash Screen After Reset: ${config.getShowSplashScreenSync}');
 
   // b) Read-only field

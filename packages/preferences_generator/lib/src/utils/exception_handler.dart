@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 import 'package:source_gen/source_gen.dart';
@@ -18,7 +18,7 @@ class ExceptionHandler {
   }
 
   /// A generic fallback error for when parsing fails unexpectedly.
-  static InvalidGenerationSourceError couldNotParse(Element2 element) {
+  static InvalidGenerationSourceError couldNotParse(Element element) {
     return InvalidGenerationSourceError(
       'Failed to parse the `${Names.annotation.module}` class. Please check its structure '
       'and annotations.',
@@ -28,7 +28,7 @@ class ExceptionHandler {
 
   /// Error for when two or more generated methods resolve to the same name.
   static InvalidGenerationSourceError duplicateMethodName(
-    ClassElement2 element,
+    ClassElement element,
     String conflictingName,
     String description1,
     String description2,
@@ -43,11 +43,11 @@ class ExceptionHandler {
   }
 
   /// Error for when the factory constructor does not have a valid `PrefsAdapter` parameter.
-  static InvalidGenerationSourceError missingAdapterParameter(ConstructorElement2 element) {
+  static InvalidGenerationSourceError missingAdapterParameter(ConstructorElement element) {
     return InvalidGenerationSourceError(
       'The factory constructor must have a single, positional parameter of type '
       '`${Names.interface.adapter}`.',
-      element: element.enclosingElement2,
+      element: element.enclosingElement,
     );
   }
 
@@ -65,7 +65,7 @@ class ExceptionHandler {
   }
 
   /// Error for when the required public factory constructor is missing.
-  static InvalidGenerationSourceError missingFactoryConstructor(ClassElement2 element) {
+  static InvalidGenerationSourceError missingFactoryConstructor(ClassElement element) {
     return InvalidGenerationSourceError(
       'Classes annotated with `${Names.annotation.module}` must have exactly one public '
       'factory constructor.',
@@ -74,7 +74,7 @@ class ExceptionHandler {
   }
 
   /// Error for when the required private schema constructor is missing.
-  static InvalidGenerationSourceError missingPrivateConstructor(ClassElement2 element) {
+  static InvalidGenerationSourceError missingPrivateConstructor(ClassElement element) {
     return InvalidGenerationSourceError(
       'Classes using this API pattern must have a private, generative constructor (e.g., '
       '`${element.displayName}._({...});`) to define the preference schema.',
@@ -83,7 +83,7 @@ class ExceptionHandler {
   }
 
   /// Error for when streamers are enabled but `dart:async` is not available.
-  static InvalidGenerationSourceError missingStreamImport(ClassElement2 element) {
+  static InvalidGenerationSourceError missingStreamImport(ClassElement element) {
     return InvalidGenerationSourceError(
       'You have enabled streamers, which requires `Stream` and `StreamController`.\n'
       'Please add the following import to your file:\n\n'
@@ -93,7 +93,7 @@ class ExceptionHandler {
   }
 
   /// Error for when @PrefsModule is used on a non-abstract class.
-  static InvalidGenerationSourceError moduleMustBeAbstract(ClassElement2 element) {
+  static InvalidGenerationSourceError moduleMustBeAbstract(ClassElement element) {
     return InvalidGenerationSourceError(
       'Classes annotated with `${Names.annotation.module}` must be abstract.',
       element: element,
@@ -101,7 +101,7 @@ class ExceptionHandler {
   }
 
   /// Error for when @PrefsModule is used on a non-class element.
-  static InvalidGenerationSourceError notAClass(Element2 element) {
+  static InvalidGenerationSourceError notAClass(Element element) {
     return InvalidGenerationSourceError(
       '`${Names.annotation.module}` can only be used on classes.',
       element: element,
@@ -110,7 +110,7 @@ class ExceptionHandler {
 
   /// A catch-all for unexpected crashes during the code writing phase.
   static InvalidGenerationSourceError unexpectedError(
-    Element2 element,
+    Element element,
     Object error,
     StackTrace stackTrace,
   ) {

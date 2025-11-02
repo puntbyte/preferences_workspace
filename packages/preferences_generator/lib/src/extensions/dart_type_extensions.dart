@@ -10,16 +10,16 @@ extension DartTypeExtensions on DartType {
   static const _durationChecker = TypeChecker.fromUrl('dart:core#Duration');
 
   /// Returns `true` if this type represents an enum.
-  bool get isEnum => element3?.kind == ElementKind.ENUM;
+  bool get isEnum => element?.kind == ElementKind.ENUM;
 
   /// Returns `true` if this type is a record.
   bool get isRecord => this is RecordType;
 
   /// Returns `true` if this type is `dart.core.DateTime`.
-  bool get isDateTime => element3 != null ? _dateTimeChecker.isExactly(element3!) : false;
+  bool get isDateTime => element != null ? _dateTimeChecker.isExactly(element!) : false;
 
   /// Returns `true` if this type is `dart.core.Duration`.
-  bool get isDuration => element3 != null ? _durationChecker.isExactly(element3!) : false;
+  bool get isDuration => element != null ? _durationChecker.isExactly(element!) : false;
 
   /// Returns `true` if this type is explicitly nullable (e.g., `String?`).
   bool get isNullable {

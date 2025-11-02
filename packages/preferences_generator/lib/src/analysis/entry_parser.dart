@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:preferences_annotation/preferences_annotation.dart';
 import 'package:preferences_generator/src/analysis/config_resolver.dart';
 import 'package:preferences_generator/src/analysis/default_value_parser.dart';
@@ -13,16 +13,16 @@ import 'package:source_gen/source_gen.dart';
 /// An orchestrator class that parses a factory constructor's parameters and converts them into a
 /// list of [Entry] models by delegating to specialized parsers.
 class EntryParser {
-  final ConstructorElement2 _schemaConstructor;
+  final ConstructorElement _schemaConstructor;
   final ConfigResolver _configResolver;
   final SerializationParser _serializationParser;
   final DefaultValueParser _defaultValueParser;
   final KeyCase _finalKeyCase;
 
-  static const _entryChecker = TypeChecker.fromRuntime(PrefEntry);
+  static const _entryChecker = TypeChecker.typeNamed(PrefEntry);
 
   EntryParser({
-    required ConstructorElement2 schemaConstructor,
+    required ConstructorElement schemaConstructor,
     required ConfigResolver configResolver,
     required KeyCase finalKeyCase,
   }) : _schemaConstructor = schemaConstructor,
@@ -41,7 +41,7 @@ class EntryParser {
 
   /// The main parsing pipeline for a single parameter.
   Entry _parseParameter(FormalParameterElement parameter) {
-    final library = parameter.library2;
+    final library = parameter.library;
     if (library == null) throw ExceptionHandler.unexpectedMissingLibrary(parameter);
 
     final annotation = _entryChecker.firstAnnotationOfExact(parameter);
