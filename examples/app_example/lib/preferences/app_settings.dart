@@ -9,16 +9,46 @@ part '../generated/preferences/app_settings.prefs.dart';
 
 enum AppLanguage { english, spanish, french }
 
-// onWriteError is wired up here to demonstrate P1 error-handling feature.
-@PrefsModule.reactive(onWriteError: AppSettings._onWriteError)
+@PrefsModule.reactive()
 abstract class AppSettings with _$AppSettings, ChangeNotifier {
   factory AppSettings(PrefsAdapter adapter) = _AppSettings;
 
-  AppSettings._();
+  AppSettings._({
+    // --- Primitives ---
+    String username = 'guest',
+    double themeOpacity = 1.0,
+    bool isFirstLaunch = true,
+    int? lastNotificationId,
 
-  /// Called when a synchronous (fire-and-forget) storage write fails.
-  /// Demonstrates the onWriteError P1 feature.
-  static void _onWriteError(Object error, StackTrace st) {
-    debugPrint('[AppSettings] Write failed: $error');
-  }
+    // --- Collections ---
+    List<String> bookmarkedArticleIds = const <String>[],
+    Set<int> favoriteCategoryIds = const <int>{},
+    Map<String, String> userFlags = const <String, String>{},
+
+    // --- Core Dart & Flutter types ---
+    ThemeMode themeMode = ThemeMode.system,
+    @PrefEntry(converter: ColorConverter()) Color? accentColor,
+    Duration sessionTimeout = const Duration(minutes: 30),
+
+    // --- Enums & Records ---
+    AppLanguage language = AppLanguage.english,
+    ({int w, int h})? windowSize,
+
+    // --- Custom object with PrefConverter ---
+    @PrefEntry(converter: UserProfileConverter()) UserProfile? userProfile,
+
+    // --- Feature showcase ---
+
+    // 1. Explicit storage key + custom stream name.
+    //    {{Name}} capitalises to LaunchCount, so the stream is `launchCountStream`
+    //    by default from the reactive() preset; override to a custom name here.
+    @PrefEntry(key: 'launch_counter', streamer: 'on{{Name}}Updated')
+    int launchCount = 0,
+
+    // 2. Read-only field — no setter or remover generated.
+    //    Previously required:
+    //      setter: CustomConfig(enabled: false), remover: CustomConfig(enabled: false)
+    @PrefEntry(readOnly: true)
+    final String installId = 'uuid-1234-abcd',
+  });
 }

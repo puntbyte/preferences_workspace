@@ -22,14 +22,27 @@ class ApiSession {
   );
 }
 
-// Uses the default PrefsModule with snake_case keys and explicit opt-in streams.
-// This demonstrates that streaming is not always module-wide — you can opt in
-// per entry using @PrefEntry(streamer: ...).
 @PrefsModule(keyCase: KeyCase.snake)
 abstract class SecureSettings with _$SecureSettings, ChangeNotifier {
   factory SecureSettings(PrefsAdapter adapter) = _SecureSettings;
 
-  SecureSettings._();
+  SecureSettings._({
+    // A nullable String for sensitive data.
+    // Previously: streamer: CustomConfig(enabled: true, prefix: 'watch', suffix: 'Stream')
+    @PrefEntry(streamer: 'watch{{Name}}Stream')
+    String? authToken,
+
+    // A custom object using inline toStorage/fromStorage functions.
+    @PrefEntry(toStorage: _sessionToStorage, fromStorage: _sessionFromStorage)
+    ApiSession? apiSession,
+
+    // A boolean flag with a simple default stream name.
+    // Previously: streamer: CustomConfig(enabled: true)
+    // Now: uses the module default streamer template (null → no stream by default
+    // for the base PrefsModule, so we opt-in explicitly with a template).
+    @PrefEntry(streamer: '{{name}}Stream')
+    bool areBiometricsEnabled = false,
+  });
 
   static Map<String, dynamic> _sessionToStorage(ApiSession session) =>
       session.toJson();
