@@ -2,12 +2,11 @@ import 'package:code_builder/code_builder.dart';
 import 'package:preferences_generator/src/builders/value_change_logic_builder.dart';
 import 'package:preferences_generator/src/models/entry.dart';
 import 'package:preferences_generator/src/models/module.dart';
-import 'package:preferences_generator/src/utils/method_namer.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 import 'package:preferences_generator/src/utils/syntax_builder.dart';
 
-/// Generates all public methods for a single preference entry (e.g., getters,
-/// setters, removers, streamers).
+/// Generates all public methods for a single preference entry:
+/// async getter, sync/async setters, sync/async removers, and the stream getter.
 class EntryMethodsBuilder {
   final Module module;
   final Entry entry;
@@ -24,20 +23,25 @@ class EntryMethodsBuilder {
   ];
 
   Method? _buildAsyncGetter() {
-    if (!entry.resolvedAsyncGetter.enabled) return null;
-    final name = MethodNamer.getName(entry.name, entry.resolvedAsyncGetter);
+    final name = entry.resolvedAsyncGetter;
+    if (name == null) return null;
 
     return SyntaxBuilder.method(
       name: name,
       returns: Reference('Future<${entry.type.getDisplayString()}>'),
       modifier: MethodModifier.async,
-      body: Code('await _load(); return ${Names.cachedField(entry.name)};'),
+      // Calls _load() which is guarded by _isLoaded, so only reads storage once.
+      body: Code(
+        'await ${Names.privateLoadMethod}();'
+        ' return ${Names.cachedField(entry.name)};',
+      ),
     );
   }
 
   Method? _buildSetter() {
-    if (!entry.resolvedSetter.enabled) return null;
-    final name = MethodNamer.getName(entry.name, entry.resolvedSetter);
+    final name = entry.resolvedSetter;
+    if (name == null) return null;
+
     final body = ValueChangeLogicBuilder(module: module, entry: entry).build(
       newValueExpression: Names.valueParameter,
       isRemove: false,
@@ -56,13 +60,15 @@ class EntryMethodsBuilder {
   }
 
   Method? _buildAsyncSetter() {
-    if (!entry.resolvedAsyncSetter.enabled) return null;
-    final name = MethodNamer.getName(entry.name, entry.resolvedAsyncSetter);
+    final name = entry.resolvedAsyncSetter;
+    if (name == null) return null;
+
     final body = ValueChangeLogicBuilder(module: module, entry: entry).build(
       newValueExpression: Names.valueParameter,
       isRemove: false,
       isAsync: true,
     );
+
     return SyntaxBuilder.method(
       name: name,
       returns: const Reference('Future<void>'),
@@ -76,8 +82,9 @@ class EntryMethodsBuilder {
   }
 
   Method? _buildRemover() {
-    if (!entry.resolvedRemover.enabled) return null;
-    final name = MethodNamer.getName(entry.name, entry.resolvedRemover);
+    final name = entry.resolvedRemover;
+    if (name == null) return null;
+
     final body = ValueChangeLogicBuilder(module: module, entry: entry).build(
       newValueExpression: entry.defaultSourceExpression,
       isRemove: true,
@@ -92,8 +99,9 @@ class EntryMethodsBuilder {
   }
 
   Method? _buildAsyncRemover() {
-    if (!entry.resolvedAsyncRemover.enabled) return null;
-    final name = MethodNamer.getName(entry.name, entry.resolvedAsyncRemover);
+    final name = entry.resolvedAsyncRemover;
+    if (name == null) return null;
+
     final body = ValueChangeLogicBuilder(module: module, entry: entry).build(
       newValueExpression: entry.defaultSourceExpression,
       isRemove: true,
@@ -109,14 +117,13 @@ class EntryMethodsBuilder {
   }
 
   Method? _buildStreamer() {
-    if (!entry.resolvedStream.enabled) return null;
-    final name = MethodNamer.getName(entry.name, entry.resolvedStream);
-    final streamType = entry.type.getDisplayString();
+    final name = entry.resolvedStream;
+    if (name == null) return null;
 
     return SyntaxBuilder.method(
       name: name,
       type: MethodType.getter,
-      returns: Reference('Stream<$streamType>'),
+      returns: Reference('Stream<${entry.type.getDisplayString()}>'),
       body: Code('${Names.streamControllerField(entry.name)}.stream'),
       isLambda: true,
     );

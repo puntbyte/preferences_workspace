@@ -1,15 +1,23 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:code_builder/code_builder.dart';
+import 'package:preferences_annotation/preferences_annotation.dart';
+import 'package:preferences_generator/src/analysis/config_resolver.dart';
 import 'package:preferences_generator/src/extensions/dart_type_extensions.dart';
-import 'package:preferences_generator/src/models/method_config.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 import 'package:preferences_generator/src/utils/type_analyzer.dart';
 
 /// Represents a single, fully parsed and resolved preference entry.
 ///
-/// This is an immutable model that holds all the information needed by the writer classes to
-/// generate the code for one preference.
+/// This is an immutable model that holds all information needed by the writer
+/// classes to generate code for one preference.
+///
+/// ### Resolved method names
+///
+/// Each `resolved*` field is a `String?` where:
+/// - `null` — the method is disabled for this entry.
+/// - non-null — the final, literal method name to emit (all template tokens
+///   have already been substituted by [ConfigResolver]).
 class Entry {
   final String name;
   final DartType type;
@@ -17,24 +25,24 @@ class Entry {
   final String storageKey;
   final String? defaultValueCode;
   final String? initialValueAccessor;
-
-  // --- Resolved Configurations ---
   final bool resolvedNotifiable;
-  final ResolvedMethodConfig resolvedGetter;
-  final ResolvedMethodConfig resolvedSetter;
-  final ResolvedMethodConfig resolvedRemover;
-  final ResolvedMethodConfig resolvedAsyncGetter;
-  final ResolvedMethodConfig resolvedAsyncSetter;
-  final ResolvedMethodConfig resolvedAsyncRemover;
-  final ResolvedMethodConfig resolvedStream;
 
-  // --- Custom Serialization ---
+  // --- Resolved method names (null = disabled) ---
+  final String? resolvedGetter;
+  final String? resolvedSetter;
+  final String? resolvedRemover;
+  final String? resolvedAsyncGetter;
+  final String? resolvedAsyncSetter;
+  final String? resolvedAsyncRemover;
+  final String? resolvedStream;
+
+  // --- Custom serialization ---
   final String? converterExpression;
   final String? toStorageExpression;
   final String? fromStorageExpression;
   final Reference storageType;
 
-  // --- Calculated Properties for Convenience ---
+  // --- Calculated convenience properties ---
   late final bool isNullable = type.isNullable;
   late final String nonNullableTypeName = typeSystem.promoteToNonNull(type).getDisplayString();
 
@@ -59,35 +67,36 @@ class Entry {
     this.initialValueAccessor,
   });
 
-  /// A convenience getter that returns the correct source code expression for the entry's default
-  /// value, regardless of whether it's compile-time or field-based.
+  /// Returns the correct source-code expression for this entry's default value,
+  /// regardless of whether it is a compile-time constant or a factory-function call.
   String get defaultSourceExpression {
     if (initialValueAccessor != null) return '$initialValueAccessor()';
-
     return defaultValueCode ?? 'null';
   }
 
-  /// A flag to check if this entry has a non-constant, field-based default.
+  /// `true` if this entry's default value is produced by a factory function
+  /// rather than a compile-time constant.
   bool get hasInitialFunction => initialValueAccessor != null;
 
-  /// Returns true if this entry uses a `PrefConverter` or `toStorage`/`fromStorage` functions.
+  /// `true` if this entry uses a [PrefConverter] or explicit
+  /// `toStorage`/`fromStorage` functions.
   bool get needsCustomSerialization => converterExpression != null || toStorageExpression != null;
 
-  /// Builds the source code expression for serializing a value.
+  /// Builds the source-code expression for serializing [value] before storage.
   String buildSerializationExpression(String value) {
-    if (converterExpression != null) return '$converterExpression.${Names.field.toStorage}($value)';
+    if (converterExpression != null) {
+      return '$converterExpression.${Names.field.toStorage}($value)';
+    }
     if (toStorageExpression != null) return '$toStorageExpression($value)';
-
     return TypeAnalyzer.buildSerializationExpression(value, type);
   }
 
-  /// Builds the source code expression for deserializing a value.
+  /// Builds the source-code expression for deserializing [rawValue] from storage.
   String buildDeserializationExpression(String rawValue) {
     if (converterExpression != null) {
       return '$converterExpression.${Names.field.fromStorage}($rawValue)';
     }
     if (fromStorageExpression != null) return '$fromStorageExpression($rawValue)';
-
     return TypeAnalyzer.buildDeserializationExpression(rawValue, type, typeSystem);
   }
 }

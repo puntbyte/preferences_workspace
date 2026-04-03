@@ -7,7 +7,15 @@ import 'package:preferences_generator/src/models/module.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 import 'package:preferences_generator/src/utils/syntax_builder.dart';
 
-/// Generates the `_$MyModule` mixin by orchestrating specialized builders.
+/// Generates the `_$<ModuleName>` mixin by orchestrating all specialised
+/// builder classes.
+///
+/// The mixin contains:
+/// 1. Abstract state requirements (backing fields and stream controllers that
+///    the concrete implementation class must provide).
+/// 2. Concrete public synchronous getters returning cached state.
+/// 3. Built-in module-level methods (`refresh`, `removeAll`, `dispose`, `_load`).
+/// 4. All public methods for each individual preference entry.
 class MixinWriter {
   final Module module;
 
@@ -15,17 +23,17 @@ class MixinWriter {
 
   Mixin write() {
     final methods = <Method>[
-      // 1. Abstract state requirements for the concrete class to implement.
+      // 1. Abstract state requirements.
       ...AbstractRequirementsBuilder(module).build(),
 
-      // 2. Simple public getters that return the cached state.
+      // 2. Synchronous public getters.
       ...PublicGettersBuilder(module).build(),
 
-      // 3. Built-in module-level methods (`refresh`, `removeAll`, `_load`, etc.).
+      // 3. Module-level methods.
       ...ModuleMethodsBuilder(module).build(),
     ];
 
-    // 4. All public methods for each individual preference entry.
+    // 4. Per-entry methods.
     for (final entry in module.entries) {
       methods.addAll(EntryMethodsBuilder(module: module, entry: entry).build());
     }
