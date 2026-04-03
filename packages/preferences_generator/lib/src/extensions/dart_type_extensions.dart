@@ -16,10 +16,10 @@ extension DartTypeExtensions on DartType {
   bool get isRecord => this is RecordType;
 
   /// Returns `true` if this type is `dart.core.DateTime`.
-  bool get isDateTime => element != null ? _dateTimeChecker.isExactly(element!) : false;
+  bool get isDateTime => element != null && _dateTimeChecker.isExactly(element!);
 
   /// Returns `true` if this type is `dart.core.Duration`.
-  bool get isDuration => element != null ? _durationChecker.isExactly(element!) : false;
+  bool get isDuration => element != null && _durationChecker.isExactly(element!);
 
   /// Returns `true` if this type is explicitly nullable (e.g., `String?`).
   bool get isNullable {

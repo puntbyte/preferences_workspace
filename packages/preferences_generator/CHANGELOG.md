@@ -1,3 +1,9 @@
+## [2.0.8]
+
+### 🔧 Maintenance
+
+- **Updated:** `analyzer` dependency upgraded from `^9.0.0` to `^10.0.0`.
+
 ## [2.0.7]
 
 ### 🔧 Maintenance
