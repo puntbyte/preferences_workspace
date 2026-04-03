@@ -3,16 +3,18 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 import 'package:source_gen/source_gen.dart';
 
-/// A centralized handler for creating consistent, user-friendly build-time errors.
+/// A centralised handler for creating consistent, user-friendly build-time errors.
 class ExceptionHandler {
   const ExceptionHandler._();
 
   /// Error for when a parameter has both a compile-time default and an `initial` function.
-  static InvalidGenerationSourceError ambiguousDefault(FormalParameterElement element) {
+  static InvalidGenerationSourceError ambiguousDefault(
+    FormalParameterElement element,
+  ) {
     return InvalidGenerationSourceError(
-      'Parameter `${element.displayName}` has both a compile-time default value in the signature '
-      'and a non-constant default via the `@PrefEntry(initial: ...)` property. You must provide '
-      'only one.',
+      'Parameter `${element.displayName}` has both a compile-time default value in the '
+      'signature and a non-constant default via the `@PrefEntry(initial: ...)` property. '
+      'You must provide only one.',
       element: element,
     );
   }
@@ -35,15 +37,63 @@ class ExceptionHandler {
   ) {
     return InvalidGenerationSourceError(
       'Duplicate method name generated: `$conflictingName`.\n\n'
-      'This name is created by both the "$description1" and the "$description2".\n\n'
-      'To fix this, use the `name` or `prefix`/`suffix` properties in `@PrefEntry` or '
-      '`@PrefsModule` to specify a unique name for one of them.',
+      'This name is produced by both the "$description1" and the "$description2".\n\n'
+      'To fix this, update the template string in `${Names.annotation.entry}` or '
+      '`${Names.annotation.module}` so each method resolves to a unique name.',
+      element: element,
+    );
+  }
+
+  /// Error for when a per-entry template override in `@PrefEntry` does not
+  /// contain a `{{name}}` or `{{Name}}` token.
+  ///
+  /// A bare literal name (e.g., `setter: 'save'`) would cause every entry in
+  /// the module to generate a method called `save`, inevitably triggering a
+  /// duplicate-name error. The template must vary per entry.
+  static InvalidGenerationSourceError invalidEntryTemplate(
+    FormalParameterElement element,
+    String template,
+    String methodType,
+  ) {
+    return InvalidGenerationSourceError(
+      'The `$methodType` template `"$template"` on parameter '
+      '`${element.displayName}` does not contain a `{{name}}` or `{{Name}}` '
+      'substitution token.\n\n'
+      'Per-entry templates must vary by field name to avoid generating duplicate '
+      'method names. For example:\n'
+      "  - setter: 'set{{Name}}'   → generates `set${element.displayName[0].toUpperCase()}"
+      '${element.displayName.substring(1)}`\n'
+      "  - streamer: '{{name}}Stream'\n\n"
+      'To explicitly disable a method for this entry only, use '
+      '`$methodType: PrefEntry.disabled`.',
+      element: element,
+    );
+  }
+
+  /// Error for when a module-level template in `@PrefsModule` does not contain
+  /// a `{{name}}` or `{{Name}}` token.
+  static InvalidGenerationSourceError invalidModuleTemplate(
+    ClassElement element,
+    String template,
+    String methodType,
+  ) {
+    return InvalidGenerationSourceError(
+      'The `$methodType` template `"$template"` in `${Names.annotation.module}` '
+      'does not contain a `{{name}}` or `{{Name}}` substitution token.\n\n'
+      'Module-level templates must be parameterised so each entry generates a '
+      'unique method name. For example:\n'
+      "  - getter: '{{name}}'         → generates `username`, `themeMode`, …\n"
+      "  - setter: 'set{{Name}}'      → generates `setUsername`, `setThemeMode`, …\n"
+      "  - streamer: '{{name}}Stream' → generates `usernameStream`, …\n\n"
+      'To disable this method type for the entire module, pass `null` for `$methodType`.',
       element: element,
     );
   }
 
   /// Error for when the factory constructor does not have a valid `PrefsAdapter` parameter.
-  static InvalidGenerationSourceError missingAdapterParameter(ConstructorElement element) {
+  static InvalidGenerationSourceError missingAdapterParameter(
+    ConstructorElement element,
+  ) {
     return InvalidGenerationSourceError(
       'The factory constructor must have a single, positional parameter of type '
       '`${Names.interface.adapter}`.',
@@ -58,14 +108,16 @@ class ExceptionHandler {
   ) {
     return InvalidGenerationSourceError(
       'Non-nullable parameter `$paramName` must have a default value.\n'
-      'Provide a compile-time default in the signature (e.g., `String $paramName = "value"`) or a '
-      'non-constant default via `@PrefEntry(initial: yourFunction)`.',
+      'Provide a compile-time default in the signature (e.g., `String $paramName = "value"`) '
+      'or a non-constant default via `@PrefEntry(initial: yourFunction)`.',
       element: element,
     );
   }
 
   /// Error for when the required public factory constructor is missing.
-  static InvalidGenerationSourceError missingFactoryConstructor(ClassElement element) {
+  static InvalidGenerationSourceError missingFactoryConstructor(
+    ClassElement element,
+  ) {
     return InvalidGenerationSourceError(
       'Classes annotated with `${Names.annotation.module}` must have exactly one public '
       'factory constructor.',
@@ -74,16 +126,20 @@ class ExceptionHandler {
   }
 
   /// Error for when the required private schema constructor is missing.
-  static InvalidGenerationSourceError missingPrivateConstructor(ClassElement element) {
+  static InvalidGenerationSourceError missingPrivateConstructor(
+    ClassElement element,
+  ) {
     return InvalidGenerationSourceError(
-      'Classes using this API pattern must have a private, generative constructor (e.g., '
-      '`${element.displayName}._({...});`) to define the preference schema.',
+      'Classes using this API pattern must have a private, generative constructor '
+      '(e.g., `${element.displayName}._({...});`) to define the preference schema.',
       element: element,
     );
   }
 
-  /// Error for when streamers are enabled but `dart:async` is not available.
-  static InvalidGenerationSourceError missingStreamImport(ClassElement element) {
+  /// Error for when streamers are enabled but `dart:async` is not imported.
+  static InvalidGenerationSourceError missingStreamImport(
+    ClassElement element,
+  ) {
     return InvalidGenerationSourceError(
       'You have enabled streamers, which requires `Stream` and `StreamController`.\n'
       'Please add the following import to your file:\n\n'
@@ -92,15 +148,17 @@ class ExceptionHandler {
     );
   }
 
-  /// Error for when @PrefsModule is used on a non-abstract class.
-  static InvalidGenerationSourceError moduleMustBeAbstract(ClassElement element) {
+  /// Error for when `@PrefsModule` is used on a non-abstract class.
+  static InvalidGenerationSourceError moduleMustBeAbstract(
+    ClassElement element,
+  ) {
     return InvalidGenerationSourceError(
       'Classes annotated with `${Names.annotation.module}` must be abstract.',
       element: element,
     );
   }
 
-  /// Error for when @PrefsModule is used on a non-class element.
+  /// Error for when `@PrefsModule` is used on a non-class element.
   static InvalidGenerationSourceError notAClass(Element element) {
     return InvalidGenerationSourceError(
       '`${Names.annotation.module}` can only be used on classes.',
@@ -123,26 +181,28 @@ class ExceptionHandler {
     );
   }
 
-  /// Thrown when the analyzer unexpectedly fails to find the library for a given element. This
-  /// indicates a potential issue with the build system or analyzer.
+  /// Thrown when the analyzer unexpectedly fails to find the library for a
+  /// given element.
   static StateError unexpectedMissingLibrary(FormalParameterElement element) {
     return StateError(
       'Internal generator error: Could not find the library for parameter '
-      '`${element.displayName}`. This might be a bug in the generator or the build system. Please '
-      'try rebuilding or report the issue.',
+      '`${element.displayName}`. This might be a bug in the generator or the build '
+      'system. Please try rebuilding or report the issue.',
     );
   }
 
-  /// Error for when a parameter has an unsupported type and no custom converter is provided.
+  /// Error for when a parameter has an unsupported type and no custom
+  /// converter is provided.
   static InvalidGenerationSourceError unsupportedType(
     FormalParameterElement element,
     String paramName,
     DartType type,
   ) {
     return InvalidGenerationSourceError(
-      'Parameter `$paramName` has an unsupported preference type: `${type.getDisplayString()}`.\n'
-      'You must provide a `PrefConverter` or `toStorage`/`fromStorage` functions for this type in '
-      'the `${Names.annotation.entry}` annotation.',
+      'Parameter `$paramName` has an unsupported preference type: '
+      '`${type.getDisplayString()}`.\n'
+      'You must provide a `PrefConverter` or `toStorage`/`fromStorage` functions '
+      'for this type in the `${Names.annotation.entry}` annotation.',
       element: element,
     );
   }

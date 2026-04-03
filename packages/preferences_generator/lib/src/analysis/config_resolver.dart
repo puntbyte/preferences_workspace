@@ -1,133 +1,149 @@
-import 'package:preferences_generator/src/models/method_config.dart';
+import 'package:preferences_generator/src/utils/method_namer.dart';
 import 'package:preferences_generator/src/utils/names.dart';
-import 'package:source_gen/source_gen.dart';
 
-/// A record holding the collection of all parsed, entry-level method configs.
-typedef _EntryConfigs = ({
-  UnresolvedMethodConfig getter,
-  UnresolvedMethodConfig setter,
-  UnresolvedMethodConfig remover,
-  UnresolvedMethodConfig asyncGetter,
-  UnresolvedMethodConfig asyncSetter,
-  UnresolvedMethodConfig asyncRemover,
-  UnresolvedMethodConfig streamer,
+/// Holds the raw (unresolved) per-entry overrides read directly from a
+/// `@PrefEntry` annotation. All fields are nullable; `null` means "inherit
+/// from the module default". The sentinel [Names.prefEntryDisabledSentinel]
+/// means "force disabled for this entry".
+typedef EntryOverrides = ({
+  String? getter,
+  String? setter,
+  String? remover,
+  String? asyncGetter,
+  String? asyncSetter,
+  String? asyncRemover,
+  String? streamer,
+  bool? notifiable,
+  bool readOnly,
 });
 
-/// A record holding the final, resolved configurations for an entry.
-typedef ResolvedEntryConfigs = ({
-  bool notifiable,
-  ResolvedMethodConfig getter,
-  ResolvedMethodConfig setter,
-  ResolvedMethodConfig remover,
-  ResolvedMethodConfig asyncGetter,
-  ResolvedMethodConfig asyncSetter,
-  ResolvedMethodConfig asyncRemover,
-  ResolvedMethodConfig streamer,
-});
-
-/// Resolves the final method configurations by layering the entry-level settings
-/// over the module-level defaults.
+/// Resolves the final method names for a single preference entry by layering
+/// per-entry [EntryOverrides] on top of the module-level template strings.
+///
+/// Resolution order (highest → lowest priority):
+/// 1. `@PrefEntry(readOnly: true)` — forces all write methods to `null`.
+/// 2. `@PrefEntry(setter: PrefEntry.disabled)` — force-disables this method.
+/// 3. `@PrefEntry(setter: 'my{{Name}}')` — overrides with a custom template.
+/// 4. Module-level template (e.g., `@PrefsModule(setter: 'set{{Name}}')`).
+/// 5. `null` (no module template) — method is disabled.
 class ConfigResolver {
-  final bool _moduleNotifiable;
-  final UnresolvedMethodConfig _moduleGetterConfig;
-  final UnresolvedMethodConfig _moduleSetterConfig;
-  final UnresolvedMethodConfig _moduleRemoverConfig;
-  final UnresolvedMethodConfig _moduleAsyncGetterConfig;
-  final UnresolvedMethodConfig _moduleAsyncSetterConfig;
-  final UnresolvedMethodConfig _moduleAsyncRemoverConfig;
-  final UnresolvedMethodConfig _moduleStreamerConfig;
+  final bool moduleNotifiable;
+  final String? moduleGetter;
+  final String? moduleSetter;
+  final String? moduleRemover;
+  final String? moduleAsyncGetter;
+  final String? moduleAsyncSetter;
+  final String? moduleAsyncRemover;
+  final String? moduleStreamer;
 
   const ConfigResolver({
-    required bool moduleNotifiable,
-    required UnresolvedMethodConfig moduleGetterConfig,
-    required UnresolvedMethodConfig moduleSetterConfig,
-    required UnresolvedMethodConfig moduleRemoverConfig,
-    required UnresolvedMethodConfig moduleAsyncGetterConfig,
-    required UnresolvedMethodConfig moduleAsyncSetterConfig,
-    required UnresolvedMethodConfig moduleAsyncRemoverConfig,
-    required UnresolvedMethodConfig moduleStreamerConfig,
-  }) : _moduleNotifiable = moduleNotifiable,
-       _moduleGetterConfig = moduleGetterConfig,
-       _moduleSetterConfig = moduleSetterConfig,
-       _moduleRemoverConfig = moduleRemoverConfig,
-       _moduleAsyncGetterConfig = moduleAsyncGetterConfig,
-       _moduleAsyncSetterConfig = moduleAsyncSetterConfig,
-       _moduleAsyncRemoverConfig = moduleAsyncRemoverConfig,
-       _moduleStreamerConfig = moduleStreamerConfig;
+    required this.moduleNotifiable,
+    required this.moduleGetter,
+    required this.moduleSetter,
+    required this.moduleRemover,
+    required this.moduleAsyncGetter,
+    required this.moduleAsyncSetter,
+    required this.moduleAsyncRemover,
+    required this.moduleStreamer,
+  });
 
-  /// Resolves all method configurations for a single entry.
-  ResolvedEntryConfigs resolve(ConstantReader annotationReader) {
-    final entryConfigs = _parseEntryConfigs(annotationReader);
-    final notifiable = annotationReader.isNull
-        ? _moduleNotifiable
-        : (annotationReader.read(Names.field.notifiable).isNull
-              ? _moduleNotifiable
-              : annotationReader.read(Names.field.notifiable).boolValue);
+  /// Produces a complete set of resolved method names for one entry.
+  ///
+  /// Returns a record where each field is either:
+  /// - `null` → the method is disabled for this entry.
+  /// - a non-null `String` → the final, literal method name to emit.
+  ({
+    bool notifiable,
+    String? getter,
+    String? setter,
+    String? remover,
+    String? asyncGetter,
+    String? asyncSetter,
+    String? asyncRemover,
+    String? streamer,
+  })
+  resolve(String entryName, EntryOverrides overrides) {
+    final readOnly = overrides.readOnly;
 
     return (
-      notifiable: notifiable,
-      getter: _resolveSingle(entryConfigs.getter, _moduleGetterConfig, enabled: true),
-      setter: _resolveSingle(entryConfigs.setter, _moduleSetterConfig, enabled: true),
-      remover: _resolveSingle(entryConfigs.remover, _moduleRemoverConfig, enabled: true),
-      asyncGetter: _resolveSingle(
-        entryConfigs.asyncGetter,
-        _moduleAsyncGetterConfig,
-        enabled: true,
+      notifiable: overrides.notifiable ?? moduleNotifiable,
+      getter: _resolveMethod(
+        entryName: entryName,
+        moduleTemplate: moduleGetter,
+        entryOverride: overrides.getter,
+        isWriteMethod: false,
+        readOnly: readOnly,
       ),
-      asyncSetter: _resolveSingle(
-        entryConfigs.asyncSetter,
-        _moduleAsyncSetterConfig,
-        enabled: true,
+      setter: _resolveMethod(
+        entryName: entryName,
+        moduleTemplate: moduleSetter,
+        entryOverride: overrides.setter,
+        isWriteMethod: true,
+        readOnly: readOnly,
       ),
-      asyncRemover: _resolveSingle(
-        entryConfigs.asyncRemover,
-        _moduleAsyncRemoverConfig,
-        enabled: true,
+      remover: _resolveMethod(
+        entryName: entryName,
+        moduleTemplate: moduleRemover,
+        entryOverride: overrides.remover,
+        isWriteMethod: true,
+        readOnly: readOnly,
       ),
-      streamer: _resolveSingle(entryConfigs.streamer, _moduleStreamerConfig, enabled: false),
+      asyncGetter: _resolveMethod(
+        entryName: entryName,
+        moduleTemplate: moduleAsyncGetter,
+        entryOverride: overrides.asyncGetter,
+        isWriteMethod: false,
+        readOnly: readOnly,
+      ),
+      asyncSetter: _resolveMethod(
+        entryName: entryName,
+        moduleTemplate: moduleAsyncSetter,
+        entryOverride: overrides.asyncSetter,
+        isWriteMethod: true,
+        readOnly: readOnly,
+      ),
+      asyncRemover: _resolveMethod(
+        entryName: entryName,
+        moduleTemplate: moduleAsyncRemover,
+        entryOverride: overrides.asyncRemover,
+        isWriteMethod: true,
+        readOnly: readOnly,
+      ),
+      streamer: _resolveMethod(
+        entryName: entryName,
+        moduleTemplate: moduleStreamer,
+        entryOverride: overrides.streamer,
+        isWriteMethod: false,
+        readOnly: readOnly,
+      ),
     );
   }
 
-  /// Parses the raw, entry-level method configs from the `@PrefEntry` annotation.
-  _EntryConfigs _parseEntryConfigs(ConstantReader annotationReader) {
-    if (annotationReader.isNull) {
-      return (
-        getter: const UnresolvedMethodConfig(),
-        setter: const UnresolvedMethodConfig(),
-        remover: const UnresolvedMethodConfig(),
-        asyncGetter: const UnresolvedMethodConfig(),
-        asyncSetter: const UnresolvedMethodConfig(),
-        asyncRemover: const UnresolvedMethodConfig(),
-        streamer: const UnresolvedMethodConfig(),
-      );
+  /// Core resolution logic for a single method type.
+  String? _resolveMethod({
+    required String entryName,
+    required String? moduleTemplate,
+    required String? entryOverride,
+    required bool isWriteMethod,
+    required bool readOnly,
+  }) {
+    // readOnly suppresses all write methods unconditionally.
+    if (readOnly && isWriteMethod) return null;
+
+    // Entry explicitly disabled this method.
+    if (entryOverride == Names.prefEntryDisabledSentinel) return null;
+
+    // Entry has a custom template override — resolve and return it.
+    if (entryOverride != null) {
+      return MethodNamer.resolve(entryOverride, entryName);
     }
 
-    return (
-      getter: UnresolvedMethodConfig.fromReader(annotationReader.read(Names.field.getter)),
-      setter: UnresolvedMethodConfig.fromReader(annotationReader.read(Names.field.setter)),
-      remover: UnresolvedMethodConfig.fromReader(annotationReader.read(Names.field.remover)),
-      asyncGetter: UnresolvedMethodConfig.fromReader(
-        annotationReader.read(Names.field.asyncGetter),
-      ),
-      asyncSetter: UnresolvedMethodConfig.fromReader(
-        annotationReader.read(Names.field.asyncSetter),
-      ),
-      asyncRemover: UnresolvedMethodConfig.fromReader(
-        annotationReader.read(Names.field.asyncRemover),
-      ),
-      streamer: UnresolvedMethodConfig.fromReader(annotationReader.read(Names.field.streamer)),
-    );
-  }
+    // Fall back to the module-level template.
+    if (moduleTemplate != null) {
+      return MethodNamer.resolve(moduleTemplate, entryName);
+    }
 
-  /// Helper to layer an entry-level config over a module-level one.
-  ResolvedMethodConfig _resolveSingle(
-    UnresolvedMethodConfig entry,
-    UnresolvedMethodConfig module, {
-    required bool enabled,
-  }) => ResolvedMethodConfig(
-    enabled: entry.enabled ?? module.enabled ?? enabled,
-    prefix: entry.prefix ?? module.prefix,
-    suffix: entry.suffix ?? module.suffix,
-    name: entry.name ?? module.name,
-  );
+    // No template at any level — method is disabled.
+    return null;
+  }
 }

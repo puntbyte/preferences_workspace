@@ -1,322 +1,433 @@
 import 'package:meta/meta.dart';
-import 'package:preferences_annotation/preferences_annotation.dart';
+import 'package:preferences_annotation/src/config/key_case.dart';
 
+/// Marks an abstract class as a preference module and configures the API that
+/// the code generator will produce.
+///
+/// ## Quick Start: Choose a Preset
+///
+/// The easiest way to configure a module is to use one of the built-in presets.
+/// Each preset is a named constructor that pre-fills sensible method name
+/// templates for a common storage backend pattern.
+///
+/// | Preset            | Best For                             | Example methods (`username`) |
+/// |-------------------|--------------------------------------|------------------------------|
+/// | [.dictionary()]   | `shared_preferences` (recommended)  | `getUsername()`, `setUsername()` async, `removeUsername()` async |
+/// | [.reactive()]     | Reactive UIs with `ChangeNotifier`  | `username`, `setUsername()`, `usernameStream` |
+/// | [.syncOnly()]     | Fully synchronous stores (Hive)     | `getUsername()`, `putUsername()`, `deleteUsername()` |
+/// | [.syncFirst()]    | Both sync + async methods           | `username`, `setUsername()`, `usernameAsync()` |
+/// | [.minimal()]      | CLI tools, simple scripts           | `username`, `setUsername()`, `removeUsername()` |
+/// | [.exhaustive()]   | Complete API surface (all methods)  | `getUsernameSync`, `setUsernameSync`, `getUsernameAsync`, ... |
+///
+/// ## Method Name Templates
+///
+/// All per-entry method name parameters accept a template string with two
+/// substitution tokens:
+///
+/// - `{{name}}` — the camelCase field name (e.g., `isFirstLaunch`)
+/// - `{{Name}}` — the field name with the first letter capitalised
+///   (e.g., `IsFirstLaunch`)
+///
+/// A `null` value disables that method across the entire module.
+///
+/// ### Example: a custom module configuration
+///
+/// ```dart
+/// @PrefsModule(
+///   notifiable: true,
+///   getter: '{{name}}',
+///   setter: 'update{{Name}}',
+///   remover: 'reset{{Name}}',
+///   asyncSetter: 'update{{Name}}Async',
+///   streamer: 'on{{Name}}Changed',
+///   removeAll: 'resetAll',
+///   refresh: 'reload',
+/// )
+/// abstract class AppSettings with _$AppSettings, ChangeNotifier {
+///   factory AppSettings(PrefsAdapter adapter) = _AppSettings;
+///   AppSettings._({ String username = 'guest' });
+/// }
+/// ```
 @immutable
 class PrefsModule {
+  /// Whether changes to this module should call `notifyListeners()`.
+  ///
+  /// Only meaningful when the module class mixes in `ChangeNotifier`.
+  /// Defaults to `false`. Can be overridden per-entry with
+  /// `@PrefEntry(notifiable: ...)`.
   final bool notifiable;
+
+  /// The casing convention to apply to all generated storage keys.
+  ///
+  /// Takes precedence over any `key_case` value in `build.yaml`. An explicit
+  /// `@PrefEntry(key: ...)` always takes precedence over this value.
+  ///
+  /// ```dart
+  /// @PrefsModule(keyCase: KeyCase.snake) // `launchCount` → `'launch_count'`
+  /// ```
   final KeyCase? keyCase;
 
-  // --- Per-Entry Method Configurations ---
-  final AffixConfig getter;
-  final AffixConfig setter;
-  final AffixConfig remover;
+  /// A reference to a static error-handling function that is called when a
+  /// **synchronous** setter's background write fails.
+  ///
+  /// Synchronous setters use a fire-and-forget write pattern. By default, any
+  /// write errors are silently swallowed. Providing this callback gives you
+  /// visibility into those failures.
+  ///
+  /// The function must have the signature `void Function(Object, StackTrace)`.
+  ///
+  /// ```dart
+  /// @PrefsModule.reactive(onWriteError: AppSettings._onWriteError)
+  /// abstract class AppSettings with _$AppSettings, ChangeNotifier {
+  ///   static void _onWriteError(Object error, StackTrace st) {
+  ///     debugPrint('Pref write failed: $error');
+  ///   }
+  ///   ...
+  /// }
+  /// ```
+  final void Function(Object error, StackTrace)? onWriteError;
 
-  final AffixConfig asyncGetter;
-  final AffixConfig asyncSetter;
-  final AffixConfig asyncRemover;
+  // ---------------------------------------------------------------------------
+  // Per-entry method name templates (null = disabled across the module)
+  // ---------------------------------------------------------------------------
 
-  final AffixConfig streamer;
+  /// Template for synchronous getters. `null` disables sync getters.
+  ///
+  /// Example: `'{{name}}'` → `bool get isFirstLaunch`
+  final String? getter;
 
-  // --- Module-Level Method Configurations ---
-  final NamedConfig removeAll;
-  final NamedConfig refresh;
+  /// Template for synchronous setters. `null` disables sync setters.
+  ///
+  /// Example: `'set{{Name}}'` → `void setIsFirstLaunch(bool value)`
+  final String? setter;
 
-  // -------------------------
-  // Shared default constants
-  // -------------------------
-  static const AffixConfig _affixDefault = AffixConfig();
-  static const AffixConfig _affixGet = AffixConfig(prefix: 'get');
-  static const AffixConfig _affixSet = AffixConfig(prefix: 'set');
-  static const AffixConfig _affixRemove = AffixConfig(prefix: 'remove');
-  static const AffixConfig _affixPut = AffixConfig(prefix: 'put');
+  /// Template for synchronous removers. `null` disables sync removers.
+  ///
+  /// Example: `'remove{{Name}}'` → `void removeIsFirstLaunch()`
+  final String? remover;
 
-  static const AffixConfig _asyncGetSuffix = AffixConfig(suffix: 'Async');
-  static const AffixConfig _asyncSetPrefixSuffix = AffixConfig(prefix: 'set', suffix: 'Async');
-  static const AffixConfig _asyncRemovePrefixSuffix = AffixConfig(
-    prefix: 'remove',
-    suffix: 'Async',
-  );
+  /// Template for asynchronous getters. `null` disables async getters.
+  ///
+  /// Example: `'{{name}}Async'` → `Future<bool> isFirstLaunchAsync()`
+  final String? asyncGetter;
 
-  static const AffixConfig _streamDisabled = AffixConfig(enabled: false);
-  static const AffixConfig _streamDefault = AffixConfig(suffix: 'Stream');
+  /// Template for asynchronous setters. `null` disables async setters.
+  ///
+  /// Example: `'set{{Name}}Async'` → `Future<void> setIsFirstLaunchAsync(bool value)`
+  final String? asyncSetter;
 
-  static const NamedConfig _removeAllClear = NamedConfig(name: 'clear');
-  static const NamedConfig _removeAllDefault = NamedConfig(name: 'removeAll');
-  static const NamedConfig _refreshDefault = NamedConfig(name: 'refresh');
-  static const NamedConfig _refreshDisabled = NamedConfig(enabled: false);
+  /// Template for asynchronous removers. `null` disables async removers.
+  ///
+  /// Example: `'remove{{Name}}Async'` → `Future<void> removeIsFirstLaunchAsync()`
+  final String? asyncRemover;
 
-  /// The main constructor for defining a custom preference module behavior.
+  /// Template for stream getters. `null` disables stream generation.
+  ///
+  /// Example: `'{{name}}Stream'` → `Stream<bool> get isFirstLaunchStream`
+  final String? streamer;
+
+  // ---------------------------------------------------------------------------
+  // Module-level method names (no template substitution — these are literal names)
+  // ---------------------------------------------------------------------------
+
+  /// The name of the generated `removeAll` method. `null` disables it.
+  ///
+  /// Example: `'removeAll'` → `Future<void> removeAll()`
+  final String? removeAll;
+
+  /// The name of the generated `refresh` method. `null` disables it.
+  ///
+  /// Example: `'refresh'` → `Future<void> refresh()`
+  final String? refresh;
+
+  // ---------------------------------------------------------------------------
+  // Main constructor
+  // ---------------------------------------------------------------------------
+
+  /// The main constructor for defining a fully custom preference module.
+  ///
+  /// For most use cases, prefer a named preset constructor.
   const PrefsModule({
     this.notifiable = false,
     this.keyCase,
-
-    this.getter = _affixDefault,
-    this.setter = _affixSet,
-    this.remover = _affixRemove,
-
-    this.asyncGetter = _asyncGetSuffix,
-    this.asyncSetter = _asyncSetPrefixSuffix,
-    this.asyncRemover = _asyncRemovePrefixSuffix,
-
-    this.streamer = const AffixConfig(enabled: false, suffix: 'Stream'),
-
-    this.removeAll = _removeAllDefault,
-    this.refresh = _refreshDefault,
+    this.onWriteError,
+    this.getter = '{{name}}',
+    this.setter = 'set{{Name}}',
+    this.remover = 'remove{{Name}}',
+    this.asyncGetter,
+    this.asyncSetter,
+    this.asyncRemover,
+    this.streamer,
+    this.removeAll = 'removeAll',
+    this.refresh = 'refresh',
   });
 
-  // -----------------------------------------------------------------------
-  // Presets — all presets accept optional overrides so callers can customize
-  // any single configuration while keeping the rest of the preset defaults.
-  // -----------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Presets
+  // ---------------------------------------------------------------------------
 
-  /// A preset for key-value stores like `shared_preferences`.
-  /// Defaults: sync getters + async setters/removers, streaming disabled.
+  /// **Recommended default.** For `shared_preferences` and similar
+  /// asynchronous key-value stores.
+  ///
+  /// Generates: synchronous getters, asynchronous setters and removers.
+  /// Streaming is disabled by default.
+  ///
+  /// Generated methods for a field named `username`:
+  /// - Getter: `getUsername()` (sync)
+  /// - Setter: `setUsername(value)` (async)
+  /// - Remover: `removeUsername()` (async)
   const PrefsModule.dictionary({
     bool? notifiable,
     KeyCase? keyCase,
-
-    AffixConfig? getter,
-    AffixConfig? setter,
-    AffixConfig? remover,
-
-    AffixConfig? asyncGetter,
-    AffixConfig? asyncSetter,
-    AffixConfig? asyncRemover,
-
-    AffixConfig? streamer,
-
-    NamedConfig? removeAll,
-    NamedConfig? refresh,
+    void Function(Object, StackTrace)? onWriteError,
+    String? getter,
+    String? setter,
+    String? remover,
+    String? asyncGetter,
+    String? asyncSetter,
+    String? asyncRemover,
+    String? streamer,
+    String? removeAll,
+    String? refresh,
   }) : this(
          notifiable: notifiable ?? false,
          keyCase: keyCase,
-         getter: getter ?? _affixGet,
-         setter: setter ?? const AffixConfig(enabled: false),
-         remover: remover ?? const AffixConfig(enabled: false),
-         asyncGetter: asyncGetter ?? const AffixConfig(enabled: false),
-         asyncSetter: asyncSetter ?? _affixSet,
-         asyncRemover: asyncRemover ?? _affixRemove,
-         streamer: streamer ?? _streamDisabled,
-         removeAll: removeAll ?? _removeAllClear,
-         refresh: refresh ?? _refreshDisabled,
+         onWriteError: onWriteError,
+         getter: getter ?? 'get{{Name}}',
+         setter: setter,
+         remover: remover,
+         asyncGetter: asyncGetter,
+         asyncSetter: asyncSetter ?? 'set{{Name}}',
+         asyncRemover: asyncRemover ?? 'remove{{Name}}',
+         streamer: streamer,
+         removeAll: removeAll ?? 'clear',
+         refresh: refresh,
        );
 
-  /// A preset for fully synchronous backends like Hive or in-memory maps.
-  /// Defaults: sync getter/setter/remover; all async disabled.
+  /// For fully synchronous storage backends such as Hive or GetStorage.
+  ///
+  /// Generates: synchronous getters, setters, and removers. All async
+  /// methods and streaming are disabled.
+  ///
+  /// Generated methods for a field named `username`:
+  /// - Getter: `getUsername()` (sync)
+  /// - Setter: `putUsername(value)` (sync)
+  /// - Remover: `deleteUsername()` (sync)
   const PrefsModule.syncOnly({
     bool? notifiable,
     KeyCase? keyCase,
-
-    AffixConfig? getter,
-    AffixConfig? setter,
-    AffixConfig? remover,
-
-    AffixConfig? asyncGetter,
-    AffixConfig? asyncSetter,
-    AffixConfig? asyncRemover,
-
-    AffixConfig? streamer,
-
-    NamedConfig? removeAll,
-    NamedConfig? refresh,
+    void Function(Object, StackTrace)? onWriteError,
+    String? getter,
+    String? setter,
+    String? remover,
+    String? asyncGetter,
+    String? asyncSetter,
+    String? asyncRemover,
+    String? streamer,
+    String? removeAll,
+    String? refresh,
   }) : this(
          notifiable: notifiable ?? false,
          keyCase: keyCase,
-         getter: getter ?? _affixGet,
-         setter: setter ?? _affixPut,
-         remover: remover ?? const AffixConfig(prefix: 'delete'),
-         asyncGetter: asyncGetter ?? const AffixConfig(enabled: false),
-         asyncSetter: asyncSetter ?? const AffixConfig(enabled: false),
-         asyncRemover: asyncRemover ?? const AffixConfig(enabled: false),
-         streamer: streamer ?? _streamDisabled,
-         removeAll: removeAll ?? _removeAllClear,
-         refresh: refresh ?? _refreshDisabled,
+         onWriteError: onWriteError,
+         getter: getter ?? 'get{{Name}}',
+         setter: setter ?? 'put{{Name}}',
+         remover: remover ?? 'delete{{Name}}',
+         asyncGetter: asyncGetter,
+         asyncSetter: asyncSetter,
+         asyncRemover: asyncRemover,
+         streamer: streamer,
+         removeAll: removeAll ?? 'clear',
+         refresh: refresh,
        );
 
-  /// Sync-first preset: prefer sync methods but keep async counterparts available.
-  const PrefsModule.syncFirst({
-    bool? notifiable,
-    KeyCase? keyCase,
-
-    AffixConfig? getter,
-    AffixConfig? setter,
-    AffixConfig? remover,
-
-    AffixConfig? asyncGetter,
-    AffixConfig? asyncSetter,
-    AffixConfig? asyncRemover,
-
-    AffixConfig? streamer,
-
-    NamedConfig? removeAll,
-    NamedConfig? refresh,
-  }) : this(
-         notifiable: notifiable ?? false,
-         keyCase: keyCase,
-         getter: getter ?? _affixDefault,
-         setter: setter ?? _affixSet,
-         remover: remover ?? _affixRemove,
-         asyncGetter: asyncGetter ?? _asyncGetSuffix,
-         asyncSetter: asyncSetter ?? _asyncSetPrefixSuffix,
-         asyncRemover: asyncRemover ?? _asyncRemovePrefixSuffix,
-         streamer: streamer ?? _streamDisabled,
-         removeAll: removeAll ?? _removeAllDefault,
-         refresh: refresh ?? _refreshDefault,
-       );
-
-  /// A preset for reactive, stream-first data sources. Enables streaming and
-  /// ChangeNotifier compatibility by default.
+  /// For reactive UIs using `Stream`s and `ChangeNotifier`.
+  ///
+  /// Enables `notifiable` by default. Generates sync getters and setters,
+  /// plus a stream for every entry.
+  ///
+  /// Generated methods for a field named `username`:
+  /// - Getter: `username` (sync, no prefix)
+  /// - Setter: `setUsername(value)` (sync)
+  /// - Remover: `removeUsername()` (sync)
+  /// - Stream: `usernameStream`
   const PrefsModule.reactive({
     bool? notifiable,
     KeyCase? keyCase,
-
-    AffixConfig? getter,
-    AffixConfig? setter,
-    AffixConfig? remover,
-
-    AffixConfig? asyncGetter,
-    AffixConfig? asyncSetter,
-    AffixConfig? asyncRemover,
-
-    AffixConfig? streamer,
-
-    NamedConfig? removeAll,
-    NamedConfig? refresh,
+    void Function(Object, StackTrace)? onWriteError,
+    String? getter,
+    String? setter,
+    String? remover,
+    String? asyncGetter,
+    String? asyncSetter,
+    String? asyncRemover,
+    String? streamer,
+    String? removeAll,
+    String? refresh,
   }) : this(
          notifiable: notifiable ?? true,
          keyCase: keyCase,
-         getter: getter ?? _affixDefault,
-         setter: setter ?? _affixSet,
-         remover: remover ?? _affixRemove,
-         asyncGetter: asyncGetter ?? _asyncGetSuffix,
-         asyncSetter: asyncSetter ?? _asyncSetPrefixSuffix,
-         asyncRemover: asyncRemover ?? _asyncRemovePrefixSuffix,
-         streamer: streamer ?? _streamDefault,
-         removeAll: removeAll ?? _removeAllDefault,
-         refresh: refresh ?? _refreshDefault,
+         onWriteError: onWriteError,
+         getter: getter ?? '{{name}}',
+         setter: setter ?? 'set{{Name}}',
+         remover: remover ?? 'remove{{Name}}',
+         asyncGetter: asyncGetter,
+         asyncSetter: asyncSetter,
+         asyncRemover: asyncRemover,
+         streamer: streamer ?? '{{name}}Stream',
+         removeAll: removeAll ?? 'removeAll',
+         refresh: refresh ?? 'refresh',
        );
 
-  /// All methods enabled (feature-complete backends).
-  const PrefsModule.allEnabled({
+  /// Sync-first: synchronous methods are primary, with async counterparts also
+  /// available. Good for mixed-latency storage adapters.
+  ///
+  /// Generated methods for a field named `username`:
+  /// - Getter: `username` (sync) and `usernameAsync()` (async)
+  /// - Setter: `setUsername(value)` (sync) and `setUsernameAsync(value)` (async)
+  const PrefsModule.syncFirst({
     bool? notifiable,
     KeyCase? keyCase,
-
-    AffixConfig? getter,
-    AffixConfig? setter,
-    AffixConfig? remover,
-
-    AffixConfig? asyncGetter,
-    AffixConfig? asyncSetter,
-    AffixConfig? asyncRemover,
-
-    AffixConfig? streamer,
-
-    NamedConfig? removeAll,
-    NamedConfig? refresh,
+    void Function(Object, StackTrace)? onWriteError,
+    String? getter,
+    String? setter,
+    String? remover,
+    String? asyncGetter,
+    String? asyncSetter,
+    String? asyncRemover,
+    String? streamer,
+    String? removeAll,
+    String? refresh,
   }) : this(
-         notifiable: notifiable ?? true,
+         notifiable: notifiable ?? false,
          keyCase: keyCase,
-         getter: getter ?? _affixDefault,
-         setter: setter ?? _affixDefault,
-         remover: remover ?? _affixDefault,
-         asyncGetter: asyncGetter ?? _asyncGetSuffix,
-         asyncSetter: asyncSetter ?? _asyncGetSuffix,
-         asyncRemover: asyncRemover ?? _asyncGetSuffix,
-         streamer: streamer ?? _streamDefault,
-         removeAll: removeAll ?? _removeAllDefault,
-         refresh: refresh ?? _refreshDefault,
+         onWriteError: onWriteError,
+         getter: getter ?? '{{name}}',
+         setter: setter ?? 'set{{Name}}',
+         remover: remover ?? 'remove{{Name}}',
+         asyncGetter: asyncGetter ?? '{{name}}Async',
+         asyncSetter: asyncSetter ?? 'set{{Name}}Async',
+         asyncRemover: asyncRemover ?? 'remove{{Name}}Async',
+         streamer: streamer,
+         removeAll: removeAll ?? 'removeAll',
+         refresh: refresh ?? 'refresh',
        );
 
-  /// A preset where only getter methods are enabled.
+  /// Minimal: synchronous getters, setters, and removers only — no async
+  /// variants, no streams, no module-level methods.
+  ///
+  /// Ideal for CLI tools, scripts, or any context where simplicity is more
+  /// important than reactivity.
+  ///
+  /// Generated methods for a field named `username`:
+  /// - Getter: `username` (sync)
+  /// - Setter: `setUsername(value)` (sync)
+  /// - Remover: `removeUsername()` (sync)
+  const PrefsModule.minimal({
+    bool? notifiable,
+    KeyCase? keyCase,
+    void Function(Object, StackTrace)? onWriteError,
+    String? getter,
+    String? setter,
+    String? remover,
+  }) : this(
+         notifiable: notifiable ?? false,
+         keyCase: keyCase,
+         onWriteError: onWriteError,
+         getter: getter ?? '{{name}}',
+         setter: setter ?? 'set{{Name}}',
+         remover: remover ?? 'remove{{Name}}',
+         asyncGetter: null,
+         asyncSetter: null,
+         asyncRemover: null,
+         streamer: null,
+         removeAll: null,
+         refresh: null,
+       );
+
+  /// Read-only: only getter methods are generated. No writes, no streams.
+  ///
+  /// Useful for preference modules that are populated externally or by a
+  /// separate write-only module.
   const PrefsModule.readOnly({
     bool? notifiable,
     KeyCase? keyCase,
-
-    AffixConfig? getter,
-    AffixConfig? setter,
-    AffixConfig? remover,
-
-    AffixConfig? asyncGetter,
-    AffixConfig? asyncSetter,
-    AffixConfig? asyncRemover,
-
-    AffixConfig? streamer,
-
-    NamedConfig? removeAll,
-    NamedConfig? refresh,
+    String? getter,
+    String? asyncGetter,
   }) : this(
          notifiable: notifiable ?? false,
          keyCase: keyCase,
-         getter: getter ?? _affixDefault,
-         setter: setter ?? const AffixConfig(enabled: false),
-         remover: remover ?? const AffixConfig(enabled: false),
-         asyncGetter: asyncGetter ?? _asyncGetSuffix,
-         asyncSetter: asyncSetter ?? const AffixConfig(enabled: false),
-         asyncRemover: asyncRemover ?? const AffixConfig(enabled: false),
-         streamer: streamer ?? _streamDisabled,
-         removeAll: removeAll ?? const NamedConfig(enabled: false),
-         refresh: refresh ?? const NamedConfig(enabled: false),
+         getter: getter ?? '{{name}}',
+         setter: null,
+         remover: null,
+         asyncGetter: asyncGetter,
+         asyncSetter: null,
+         asyncRemover: null,
+         streamer: null,
+         removeAll: null,
+         refresh: null,
        );
 
-  /// Disabled preset: everything disabled.
-  const PrefsModule.disabled({
+  /// Exhaustive: generates every possible method variant with consistent,
+  /// predictable naming conventions.
+  ///
+  /// Generates all sync, async, and stream methods. Useful for verifying the
+  /// complete output of the generator and for backends that support all
+  /// operation modes.
+  ///
+  /// Generated methods for a field named `username`:
+  /// - `getUsernameSync`, `setUsernameSync`, `removeUsernameSync`
+  /// - `getUsernameAsync`, `setUsernameAsync`, `removeUsernameAsync`
+  /// - `watchUsernameStream`
+  ///
+  /// > **Note:** Formerly called `.testing()`. The old name is preserved as a
+  /// > deprecated alias below.
+  const PrefsModule.exhaustive({
     bool? notifiable,
     KeyCase? keyCase,
-
-    AffixConfig? getter,
-    AffixConfig? setter,
-    AffixConfig? remover,
-
-    AffixConfig? asyncGetter,
-    AffixConfig? asyncSetter,
-    AffixConfig? asyncRemover,
-
-    AffixConfig? streamer,
-
-    NamedConfig? removeAll,
-    NamedConfig? refresh,
-  }) : this(
-         notifiable: notifiable ?? false,
-         keyCase: keyCase,
-         getter: getter ?? const AffixConfig(enabled: false),
-         setter: setter ?? const AffixConfig(enabled: false),
-         remover: remover ?? const AffixConfig(enabled: false),
-         asyncGetter: asyncGetter ?? const AffixConfig(enabled: false, suffix: 'Async'),
-         asyncSetter: asyncSetter ?? const AffixConfig(enabled: false, suffix: 'Async'),
-         asyncRemover: asyncRemover ?? const AffixConfig(enabled: false, suffix: 'Async'),
-         streamer: streamer ?? const AffixConfig(enabled: false, suffix: 'Stream'),
-         removeAll: removeAll ?? const NamedConfig(enabled: false),
-         refresh: refresh ?? const NamedConfig(enabled: false),
-       );
-
-  /// Testing preset: consistent prefixes/suffixes useful for predictable tests.
-  const PrefsModule.testing({
-    bool? notifiable,
-    KeyCase? keyCase,
-
-    AffixConfig? getter,
-    AffixConfig? setter,
-    AffixConfig? remover,
-
-    AffixConfig? asyncGetter,
-    AffixConfig? asyncSetter,
-    AffixConfig? asyncRemover,
-
-    AffixConfig? streamer,
-
-    NamedConfig? removeAll,
-    NamedConfig? refresh,
+    void Function(Object, StackTrace)? onWriteError,
+    String? getter,
+    String? setter,
+    String? remover,
+    String? asyncGetter,
+    String? asyncSetter,
+    String? asyncRemover,
+    String? streamer,
+    String? removeAll,
+    String? refresh,
   }) : this(
          notifiable: notifiable ?? true,
          keyCase: keyCase,
-         getter: getter ?? const AffixConfig(prefix: 'get', suffix: 'Sync'),
-         setter: setter ?? const AffixConfig(prefix: 'set', suffix: 'Sync'),
-         remover: remover ?? const AffixConfig(prefix: 'remove', suffix: 'Sync'),
-         asyncGetter: asyncGetter ?? const AffixConfig(prefix: 'get', suffix: 'Async'),
-         asyncSetter: asyncSetter ?? const AffixConfig(prefix: 'set', suffix: 'Async'),
-         asyncRemover: asyncRemover ?? const AffixConfig(prefix: 'remove', suffix: 'Async'),
-         streamer: streamer ?? const AffixConfig(prefix: 'watch', suffix: 'Stream'),
-         removeAll: removeAll ?? _removeAllDefault,
-         refresh: refresh ?? _refreshDefault,
+         onWriteError: onWriteError,
+         getter: getter ?? 'get{{Name}}Sync',
+         setter: setter ?? 'set{{Name}}Sync',
+         remover: remover ?? 'remove{{Name}}Sync',
+         asyncGetter: asyncGetter ?? 'get{{Name}}Async',
+         asyncSetter: asyncSetter ?? 'set{{Name}}Async',
+         asyncRemover: asyncRemover ?? 'remove{{Name}}Async',
+         streamer: streamer ?? 'watch{{Name}}Stream',
+         removeAll: removeAll ?? 'removeAll',
+         refresh: refresh ?? 'refresh',
+       );
+
+  /// Disabled: generates no methods at all.
+  ///
+  /// A useful starting point for building a completely custom configuration
+  /// from scratch by overriding only the methods you want.
+  const PrefsModule.disabled({
+    bool? notifiable,
+    KeyCase? keyCase,
+  }) : this(
+         notifiable: notifiable ?? false,
+         keyCase: keyCase,
+         getter: null,
+         setter: null,
+         remover: null,
+         asyncGetter: null,
+         asyncSetter: null,
+         asyncRemover: null,
+         streamer: null,
+         removeAll: null,
+         refresh: null,
        );
 }
