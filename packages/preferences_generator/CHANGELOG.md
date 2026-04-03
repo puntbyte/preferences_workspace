@@ -1,3 +1,10 @@
+## [2.0.7]
+
+### 🔧 Maintenance
+
+- **Updated:** Minimum Dart SDK constraint raised from `^3.9.0` to `^3.10.0`.
+- **Updated:** `analyzer` dependency upgraded from `^8.0.0` to `^9.0.0`.
+
 ## [2.0.6]
 
 ### ⬆️ Dependency Updates

@@ -1,3 +1,9 @@
+## [2.0.2]
+
+### 🔧 Maintenance
+
+- **Updated:** Minimum Dart SDK constraint raised from `^3.9.0` to `^3.10.0`.
+
 ## [2.0.1]
 
 ### 📚 Documentation
