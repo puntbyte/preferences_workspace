@@ -1,15 +1,81 @@
-## [2.0.8]
+## [3.0.0]
 
-### 🔧 Maintenance
+### 💥 Breaking Changes
 
-- **Updated:** `analyzer` dependency upgraded from `^9.0.0` to `^10.0.0`.
+- **Requires:** `preferences_annotation ^3.0.0`.
+- **Removed:** `ResolvedMethodConfig`, `UnresolvedMethodConfig`, and
+  `MethodConfig` internal model classes. All resolved method configurations are
+  now `String?` (null = disabled, non-null = final method name). Code that
+  imported these internal classes will need to be updated.
+- **Renamed:** The `.testing()` preset is now `.exhaustive()` in both the
+  annotation and the generator. Any `@PrefsModule.testing()` usage will need
+  updating.
+
+### 🐛 Bug Fixes
+
+- **Fixed:** Synchronous setters and removers now reference the generated keys
+  class (e.g., `_AppSettingsKeys.username`) in all adapter calls instead of
+  raw string literals. This was a critical inconsistency — `_load()` already
+  used the keys class, but write methods did not.
+- **Fixed:** Generated local variable names in `_load()` were using `ALLCAPS`
+  suffixes (e.g., `rawValueForUSERNAME`). They now use proper camelCase
+  (e.g., `rawUsername`, `newUsername`).
+- **Fixed:** The internal change-tracking variable in `_load()` was named
+  `P_changed`. It is now named `hasChanged`.
+- **Fixed:** Double slash in `app_example/build.yaml`
+  (`lib/generated/{{path}}//{{file}}.prefs.dart` →
+  `lib/generated/{{path}}/{{file}}.prefs.dart`).
+
+### 🚀 New Features
+
+- **Added:** `_isLoaded` guard in the generated `_load()` method. The first
+  call populates the in-memory cache from storage; subsequent calls are no-ops.
+  `refresh()` resets the flag before re-reading. This prevents N full storage
+  reads when N async getters are called in sequence and eliminates the
+  possibility of inconsistent interim state.
+- **Added:** Build-time template validation. Per-entry template overrides in
+  `@PrefEntry` and module-level templates in `@PrefsModule` are now validated
+  to contain at least one `{{name}}` or `{{Name}}` token. A clear
+  `InvalidGenerationSourceError` is thrown if a bare literal name is provided
+  where a template is required.
+- **Added:** Error handling in fire-and-forget sync writes. All
+  `Future(() async { ... })` write blocks now include a try/catch. If
+  `@PrefsModule(onWriteError: ...)` is provided, the callback is invoked on
+  failure; otherwise the error is silently discarded.
+- **Added:** `ExceptionHandler.invalidEntryTemplate()` — clear build error for
+  per-entry templates missing substitution tokens.
+- **Added:** `ExceptionHandler.invalidModuleTemplate()` — clear build error for
+  module-level templates missing substitution tokens.
+
+### ⬆️ Dependency Updates
+
+- **Updated:** `analyzer` from `^9.0.0` to `^10.0.0`.
+- **Updated:** `preferences_annotation` from `^2.0.0` to `^3.0.0`.
+
+### 🧪 Tests
+
+- **Added:** Golden file test for the `.reactive()` preset — full pipeline
+  output snapshot in `test/src/golden/reactive_preset_test.dart`.
+- **Added:** Golden file test for the `.minimal()` preset — verifies no async,
+  stream, or module-level methods are emitted.
+- **Rewritten:** `method_namer_test.dart` — fully updated for the new
+  `MethodNamer.resolve(template, entryName)` and `MethodNamer.hasToken(template)`
+  API.
+- **Updated:** `value_change_logic_builder_test.dart` — mocks updated for
+  `String?` resolved method names; new assertions for keys class references
+  and error handling.
+- **Updated:** `mixin_writer_test.dart` — mocks updated for `String?` resolved
+  method names; new assertion for `_isLoaded` reset in `refresh()` and
+  `removeAll()`.
+
+---
 
 ## [2.0.7]
 
 ### 🔧 Maintenance
 
 - **Updated:** Minimum Dart SDK constraint raised from `^3.9.0` to `^3.10.0`.
-- **Updated:** `analyzer` dependency upgraded from `^8.0.0` to `^9.0.0`.
+- **Updated:** `analyzer` dependency upgraded from `^9.0.0` to `^10.0.0`.
 
 ## [2.0.6]
 
@@ -33,40 +99,28 @@
 
 ### 🐛 Bug Fixes
 
-- **Fixed:** Resolved a critical crash that occurred when a user customized `build_extensions` in 
-their `build.yaml`. The generator no longer manually parses this option and now correctly defers to
-`build_runner`'s standard mechanism.
+- **Fixed:** Resolved a critical crash that occurred when a user customised
+  `build_extensions` in their `build.yaml`.
 
 ## [2.0.2]
 
 ### 🔧 Improvements & Maintenance
 
-- **Improved:** Simplified the builder configuration for end-users. The builder is now consistently 
-named `preferences_generator` (matching the package name), which allows for a more conventional 
-`build.yaml` setup.
-- **Refactored:** The internal builder factory function has been renamed from `preferencesBuilder` 
-to `preferences` for better consistency and brevity.
-
-### 📚 Documentation
-- **Docs:** Updated the `README.md` and migration guide to reflect the new, simpler `build.yaml` 
-configuration.
+- **Improved:** Simplified the builder configuration for end-users.
+- **Refactored:** Internal builder factory renamed to `preferences`.
 
 ## [2.0.1]
 
 ### 📚 Documentation
 
-- **Improved:** Overhauled the `README.md` with a new, comprehensive "Configuration in Depth" 
-section. The update adds detailed documentation and examples for all advanced features, including 
-module presets, method configuration, key casing, reactive streams, and `ChangeNotifier` 
-integration.
-- **Improved:** Refined presentation and clarity of the main README with tables and blockquotes for 
-better scannability.
+- **Improved:** Overhauled the `README.md` with comprehensive configuration
+  documentation.
 
 ## [2.0.0]
 
-This is a major architectural overhaul of the Preferences Suite, introducing a more powerful, 
-flexible, and intuitive API. The core focus of this release is to simplify the `PrefsAdapter`, 
-automate serialization, and provide extensive configuration options for the generated code.
+- Initial major release with schema-in-constructor API, presets, automatic
+  serialization, stream generation, and global `build.yaml` configuration.
+
 
 ### 🚀 Features
 
