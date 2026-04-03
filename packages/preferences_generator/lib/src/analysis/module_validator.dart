@@ -4,88 +4,126 @@ import 'package:preferences_generator/src/utils/exception_handler.dart';
 import 'package:preferences_generator/src/utils/method_namer.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 
-/// A record type to hold the collection of both required constructors.
-typedef Constructors = ({ConstructorElement factory, ConstructorElement schema});
+/// A record type to hold both required constructors found on the schema class.
+typedef Constructors = ({
+  ConstructorElement factory,
+  ConstructorElement schema,
+});
 
-/// A specialized class to handle all validation logic for a preference module.
+/// Handles all validation logic for a preference module, both before and after
+/// the entry-parsing phase.
 class ModuleValidator {
   const ModuleValidator();
 
+  // ---------------------------------------------------------------------------
+  // Pre-parse: structural checks on the class element
+  // ---------------------------------------------------------------------------
+
   /// Finds and validates the required factory and private schema constructors.
   Constructors findConstructors(ClassElement element) {
-    if (!element.isAbstract) throw ExceptionHandler.moduleMustBeAbstract(element);
+    if (!element.isAbstract) {
+      throw ExceptionHandler.moduleMustBeAbstract(element);
+    }
 
     final factoryConstructor = element.constructors.firstWhere(
-      (constructor) => constructor.isFactory && constructor.isPublic,
+      (c) => c.isFactory && c.isPublic,
       orElse: () => throw ExceptionHandler.missingFactoryConstructor(element),
     );
 
     factoryConstructor.formalParameters.firstWhere(
-      (parameter) => parameter.isPositional,
+      (p) => p.isPositional,
       orElse: () => throw ExceptionHandler.missingAdapterParameter(factoryConstructor),
     );
 
     final schemaConstructor = element.constructors.firstWhere(
-      (constructor) => !constructor.isFactory && constructor.isPrivate,
+      (c) => !c.isFactory && c.isPrivate,
       orElse: () => throw ExceptionHandler.missingPrivateConstructor(element),
     );
 
     return (factory: factoryConstructor, schema: schemaConstructor);
   }
 
-  /// Iterates through all enabled methods and throws an error if a name collision is found.
+  // ---------------------------------------------------------------------------
+  // Post-parse: checks on the fully assembled Module model
+  // ---------------------------------------------------------------------------
+
+  /// Validates that all module-level template strings contain at least one
+  /// `{{name}}` or `{{Name}}` token.
+  ///
+  /// Module-level templates must be parameterised, otherwise every entry would
+  /// generate a method with the same literal name.
+  void validateModuleTemplates(
+    ClassElement element, {
+    required String? getter,
+    required String? setter,
+    required String? remover,
+    required String? asyncGetter,
+    required String? asyncSetter,
+    required String? asyncRemover,
+    required String? streamer,
+  }) {
+    void check(String? template, String methodType) {
+      if (template == null) return;
+      if (!MethodNamer.hasToken(template)) {
+        throw ExceptionHandler.invalidModuleTemplate(
+          element,
+          template,
+          methodType,
+        );
+      }
+    }
+
+    check(getter, Names.field.getter);
+    check(setter, Names.field.setter);
+    check(remover, Names.field.remover);
+    check(asyncGetter, Names.field.asyncGetter);
+    check(asyncSetter, Names.field.asyncSetter);
+    check(asyncRemover, Names.field.asyncRemover);
+    check(streamer, Names.field.streamer);
+  }
+
+  /// Iterates through all enabled methods and throws if any two methods resolve
+  /// to the same name.
   void checkForDuplicateMethodNames(ClassElement element, Module module) {
     final nameMap = <String, String>{};
-    final refreshConfig = module.refresh;
-    final removeAllConfig = module.removeAll;
-    final entries = module.entries;
 
-    void checkAndAdd(String name, String description) {
+    void checkAndAdd(String? name, String description) {
+      if (name == null) return;
       if (nameMap.containsKey(name)) {
-        throw ExceptionHandler.duplicateMethodName(element, name, nameMap[name]!, description);
+        throw ExceptionHandler.duplicateMethodName(
+          element,
+          name,
+          nameMap[name]!,
+          description,
+        );
       }
       nameMap[name] = description;
     }
 
-    if (refreshConfig.enabled) {
-      final name = MethodNamer.getName(refreshConfig.name!, refreshConfig);
-      checkAndAdd(name, 'module refresh method');
-    }
+    // Module-level methods.
+    checkAndAdd(module.refresh, 'module refresh method');
+    checkAndAdd(module.removeAll, 'module removeAll method');
 
-    if (removeAllConfig.enabled) {
-      final name = MethodNamer.getName(removeAllConfig.name!, removeAllConfig);
-      checkAndAdd(name, 'module removeAll method');
-    }
-
-    for (final entry in entries) {
-      final methodsToCheck = [
-        (entry.resolvedGetter, 'getter'),
-        (entry.resolvedSetter, 'setter'),
-        (entry.resolvedRemover, 'remover'),
-        (entry.resolvedAsyncGetter, 'async getter'),
-        (entry.resolvedAsyncSetter, 'async setter'),
-        (entry.resolvedAsyncRemover, 'async remover'),
-        (entry.resolvedStream, 'stream'),
-      ];
-
-      for (final (config, typeDescription) in methodsToCheck) {
-        if (config.enabled) {
-          final name = MethodNamer.getName(entry.name, config);
-          checkAndAdd(name, "$typeDescription for '${entry.name}'");
-        }
-      }
+    // Per-entry methods.
+    for (final entry in module.entries) {
+      checkAndAdd(entry.resolvedGetter, "getter for '${entry.name}'");
+      checkAndAdd(entry.resolvedSetter, "setter for '${entry.name}'");
+      checkAndAdd(entry.resolvedRemover, "remover for '${entry.name}'");
+      checkAndAdd(entry.resolvedAsyncGetter, "async getter for '${entry.name}'");
+      checkAndAdd(entry.resolvedAsyncSetter, "async setter for '${entry.name}'");
+      checkAndAdd(entry.resolvedAsyncRemover, "async remover for '${entry.name}'");
+      checkAndAdd(entry.resolvedStream, "streamer for '${entry.name}'");
     }
   }
 
-  /// Validates that if any streamers are enabled, `dart:async` is available.
+  /// Validates that `dart:async` is imported when any streamer is enabled.
   void validateStreamImport(ClassElement element, Module module) {
     if (!module.hasStreams) return;
 
     final library = element.firstFragment.libraryFragment;
     final hasDirectAsyncImport = library.libraryImports.any(
-      (imported) => imported.importedLibrary?.uri.toString() == Names.library.dartAsyncUrl,
+      (i) => i.importedLibrary?.uri.toString() == Names.library.dartAsyncUrl,
     );
-
     var hasExportedAsyncImport = false;
     for (final exported in library.libraryExports) {
       if (exported.exportedLibrary?.uri.toString() == Names.library.dartAsyncUrl) {

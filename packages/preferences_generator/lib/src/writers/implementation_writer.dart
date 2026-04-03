@@ -3,8 +3,11 @@ import 'package:preferences_generator/src/models/module.dart';
 import 'package:preferences_generator/src/utils/names.dart';
 import 'package:preferences_generator/src/utils/syntax_builder.dart';
 
-/// Generates the `_MyModule` concrete class which extends the user's class, provides the state
-/// (backing fields), and connects to the storage adapter.
+/// Generates the concrete `_<ModuleName>` class that:
+/// - extends the user's abstract class,
+/// - mixes in the generated `_$<ModuleName>` mixin,
+/// - provides all backing state fields, and
+/// - wires up the adapter and runs the initial load.
 class ImplementationWriter {
   final Module module;
 
@@ -20,14 +23,23 @@ class ImplementationWriter {
 
   List<Field> _buildFields() {
     final fields = <Field>[
+      // The storage adapter.
       SyntaxBuilder.field(
         name: Names.adapterFieldName,
         annotations: [const Reference('override')],
         modifier: FieldModifier.final$,
         type: Reference(Names.interface.adapter),
       ),
+
+      // The _isLoaded guard: prevents redundant storage reads.
+      SyntaxBuilder.field(
+        name: Names.isLoadedVar,
+        type: const Reference('bool'),
+        assignment: const Code('false'),
+      ),
     ];
 
+    // Backing cache field for each preference entry.
     for (final entry in module.entries) {
       fields.add(
         SyntaxBuilder.field(
@@ -39,7 +51,8 @@ class ImplementationWriter {
       );
     }
 
-    for (final entry in module.entries.where((e) => e.resolvedStream.enabled)) {
+    // StreamController for each streaming entry.
+    for (final entry in module.entries.where((e) => e.resolvedStream != null)) {
       final streamType = entry.type.getDisplayString();
       fields.add(
         SyntaxBuilder.field(
@@ -57,33 +70,39 @@ class ImplementationWriter {
 
   Constructor _buildConstructor() {
     return SyntaxBuilder.constructor(
-      requiredParameter: SyntaxBuilder.parameter(name: Names.adapterFieldName, toThis: true),
+      requiredParameter: SyntaxBuilder.parameter(
+        name: Names.adapterFieldName,
+        toThis: true,
+      ),
       initializer: Code('super._(${_buildSuperConstructorArgs()})'),
       body: Code(_buildInitLogic()),
     );
   }
 
-  /// Helper to build the named arguments for the `super._()` call.
-  /// It correctly passes the compile-time default values.
+  /// Passes compile-time default values to the super `_()` constructor.
   String _buildSuperConstructorArgs() {
     return module.entries
-        .where((entry) => !entry.hasInitialFunction)
-        .map((entry) => '${entry.name}: ${entry.defaultValueCode ?? 'null'}')
+        .where((e) => !e.hasInitialFunction)
+        .map((e) => '${e.name}: ${e.defaultValueCode ?? 'null'}')
         .join(', ');
   }
 
-  /// Helper to build the body of the constructor for initialization.
+  /// Builds the constructor body that initialises backing fields and kicks
+  /// off the first background load from storage.
   String _buildInitLogic() {
     final body = StringBuffer();
 
-    // 1. Initialize all the backing fields with their correct default values.
+    // Initialise all backing cache fields with their defaults.
     for (final entry in module.entries) {
-      body.writeln('${Names.cachedField(entry.name)} = ${entry.defaultSourceExpression};');
+      body.writeln(
+        '${Names.cachedField(entry.name)} = ${entry.defaultSourceExpression};',
+      );
     }
 
-    // 2. Initialize streams with their default values.
+    // Seed streams with the initial default value so subscribers
+    // immediately receive a value on listen.
     if (module.hasStreams) {
-      for (final entry in module.entries.where((e) => e.resolvedStream.enabled)) {
+      for (final entry in module.entries.where((e) => e.resolvedStream != null)) {
         final cachedVar = Names.cachedField(entry.name);
         final controller = Names.streamControllerField(entry.name);
         if (!entry.isNullable) {
@@ -94,8 +113,9 @@ class ImplementationWriter {
       }
     }
 
-    // 3. Kick off the initial load from storage.
+    // Kick off the initial background load.
     body.writeln('${Names.privateLoadMethod}();');
+
     return body.toString();
   }
 }
