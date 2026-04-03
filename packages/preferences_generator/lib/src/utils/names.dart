@@ -5,11 +5,35 @@ class Names {
   static const ({String dartAsyncUrl}) library = (dartAsyncUrl: 'dart:async');
 
   // --- Annotations Names ---
-  static const ({String entry, String module}) annotation = (module: '@PrefsModule', entry: '@PrefEntry');
+  static const ({String entry, String module}) annotation = (
+    module: '@PrefsModule',
+    entry: '@PrefEntry',
+  );
   static const ({String adapter}) interface = (adapter: 'PrefsAdapter');
 
   // --- Annotation Field Keys (for ConstantReader) ---
-  static const ({String asyncGetter, String asyncRemover, String asyncSetter, String converter, String enabled, String fromStorage, String getter, String initial, String key, String name, String notifiable, String prefix, String refresh, String removeAll, String remover, String setter, String streamer, String suffix, String toStorage}) field = (
+  static const ({
+    String asyncGetter,
+    String asyncRemover,
+    String asyncSetter,
+    String converter,
+    String enabled,
+    String fromStorage,
+    String getter,
+    String initial,
+    String key,
+    String name,
+    String notifiable,
+    String prefix,
+    String refresh,
+    String removeAll,
+    String remover,
+    String setter,
+    String streamer,
+    String suffix,
+    String toStorage,
+  })
+  field = (
     key: 'key',
     notifiable: 'notifiable',
     initial: 'initial',
@@ -39,13 +63,17 @@ class Names {
 
   // --- Generated Class & Mixin Names ---
   static String implementationClass(String moduleName) => '_$moduleName';
+
   static String interfaceMixin(String moduleName) => '_\$$moduleName';
+
   static String keysClass(String moduleName) => '_${moduleName}Keys';
 
   // --- Generated Field & Variable Names ---
   static const adapterFieldName = '_adapter';
   static const changeMarkerVar = 'P_changed';
+
   static String cachedField(String entryName) => '_$entryName';
+
   static String streamControllerField(String entryName) => '_${entryName}StreamController';
 
   // --- Generated Method Parameter Names ---
