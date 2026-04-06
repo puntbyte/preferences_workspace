@@ -1,3 +1,9 @@
+## [3.0.1]
+
+### ⬆️ Dependency Updates
+
+- **Updated:** `analyzer` to support from `^9.x.x` to `^10.x.x`.
+
 ## [3.0.0]
 
 ### 💥 Breaking Changes
